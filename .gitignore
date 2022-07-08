@@ -1,0 +1,7 @@
+# working junk
+node_modules
+build
+
+# i work on a mac lmao
+.DS_Store
+DS_Store

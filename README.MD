@@ -1,0 +1,1 @@
+# very small react project, not using the create-react-app kit to cut down on bullshit #
