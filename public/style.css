@@ -1,14 +1,15 @@
+/* imports and variables */
 @font-face {
   font-family: VCR;
   src: url("./assets/VCR_OSD_MONO_1.001.ttf");
 }
+/* main body styling */
 body {
   text-align: center;
-}
-h1 {
-  color: blue;
+  color: lightgray;
   font-family: VCR;
 }
+/* individual component styling
 
 /* space background filter */
 #root {
