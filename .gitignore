@@ -1,6 +1,6 @@
 # working junk
 node_modules
-build
+main.js
 
 # i work on a mac lmao
 .DS_Store
