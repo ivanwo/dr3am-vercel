@@ -34,6 +34,7 @@ const LoggedIn = ({instance, accounts}) => {
     <>
       <p>logged in as {accounts[0]?.name}</p>
       <button onClick={(_) => instance.logoutPopup({ postLogoutRedirectUri: "/"})}>log out</button>
+      <button onClick={_ => console.log(accounts[0])}>who me</button>
     </>
   );
 };

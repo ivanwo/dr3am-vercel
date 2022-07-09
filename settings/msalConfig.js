@@ -5,10 +5,12 @@ import { LogLevel } from "@azure/msal-browser";
 //
 export const msalConfig = {
   auth: {
-    clientId: "5d0e2488-4981-4f1b-9849-bf737a46b428",
+    clientId: "05ce2ef8-cf62-4442-a178-d8cef47405b0",
     // authority: "https://dr3amspace.b2clogin.com/tfp/1234293e-414e-40f2-af88-bc1ed993f133",
-    authority: "https://login.microsoftonline.com/common",
-    knownAuthorities: ["https://login.microsoftonline.com/common"],
+    authority: "https://dr3amspace.b2clogin.com/dr3amspace.onmicrosoft.com/b2c_1_inandupbaby",
+    // authority: "https://login.microsoftonline.com/common",
+    knownAuthorities: ["https://dr3amspace.b2clogin.com/dr3amspace.onmicrosoft.com/b2c_1_inandupbaby"],
+    // knownAuthorities: ["https://login.microsoftonline.com/common"],
     redirectUri: "/",
     postLogoutRedirectUri: "/",
     navigateToLoginRequestUrl: false,
