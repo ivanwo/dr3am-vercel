@@ -3,6 +3,9 @@
   font-family: VCR;
   src: url("./assets/VCR_OSD_MONO_1.001.ttf");
 }
+/* * {
+  background-color: transparent;
+} */
 /* main body styling */
 body {
   text-align: center;
@@ -13,7 +16,8 @@ body {
 /* individual component styling */
 
 /* space background filter */
-#root {
+#backer {
+  z-index: -100;
   background-image: url("./assets/space.gif");
   background-size: cover;
   background-repeat: no-repeat;
@@ -24,7 +28,7 @@ body {
   right: 0;
   bottom: 0;
 }
-#root::before {
+#backer::before {
   content: "";
   position: absolute;
   background-image: url("./assets/static.gif");
@@ -38,7 +42,7 @@ body {
   right: 0;
   bottom: 0;
 }
-#root::after {
+#backer::after {
   content: "";
   position: absolute;
   z-index: 1;
@@ -52,4 +56,10 @@ body {
     rgba(255, 255, 255, 0),
     rgb(0, 0, 0) 90%
   );
+}
+#footer {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
 }

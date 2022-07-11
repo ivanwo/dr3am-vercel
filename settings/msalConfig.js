@@ -7,9 +7,9 @@ export const msalConfig = {
   auth: {
     clientId: "05ce2ef8-cf62-4442-a178-d8cef47405b0",
     // authority: "https://dr3amspace.b2clogin.com/tfp/1234293e-414e-40f2-af88-bc1ed993f133",
-    authority: "https://dr3amspace.b2clogin.com/dr3amspace.onmicrosoft.com/b2c_1_inandupbaby",
+    authority: "https://dr3amspace.b2clogin.com/dr3amspace.onmicrosoft.com/b2c_1_email_and_google",
     // authority: "https://login.microsoftonline.com/common",
-    knownAuthorities: ["https://dr3amspace.b2clogin.com/dr3amspace.onmicrosoft.com/b2c_1_inandupbaby"],
+    knownAuthorities: ["https://dr3amspace.b2clogin.com/dr3amspace.onmicrosoft.com/b2c_1_email_and_google"],
     // knownAuthorities: ["https://login.microsoftonline.com/common"],
     redirectUri: "/",
     postLogoutRedirectUri: "/",
