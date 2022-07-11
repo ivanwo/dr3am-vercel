@@ -15,13 +15,14 @@ const App = () => {
   // Routes for when the user is authenticated, and Routes for them they're not.
   return (
     <BrowserRouter>
-      <h1>D.S.</h1>
+      <h1><Link to="">D.S.</Link></h1>
       <AuthenticatedTemplate>
         <Routes>
           <Route
             path="/"
             element={<LoggedIn instance={instance} accounts={accounts} />}
           ></Route>
+          <Route path="*" element={<PageNotFound />}></Route>
         </Routes>
       </AuthenticatedTemplate>
       <UnauthenticatedTemplate>
@@ -30,6 +31,7 @@ const App = () => {
             path="/"
             element={<LoggedOut instance={instance} accounts={accounts} />}
           ></Route>
+          <Route path="*" element={<PageNotFound />}></Route>
         </Routes>
       </UnauthenticatedTemplate>
       <FooterNav instance={instance} accounts={accounts}></FooterNav>
@@ -77,16 +79,16 @@ const LoggedIn = ({ instance, accounts }) => {
 };
 
 const LoggedOut = ({ instance, accounts }) => {
-  return (
-    <>
-      <p>logged out</p>
-    </>
-  );
+  return <p>logged out</p>;
 };
+
+const PageNotFound = _ => {
+    return(<h1>404 time babyyyy</h1>)
+}
 
 // TODO: conditional options based on if the user is logged in or not
 const FooterNav = ({ instance, accounts }) => {
-    // more options for a logged in user in the nav menu
+  // more options for a logged in user in the nav menu
   if (accounts[0])
     return (
       <nav id="navfooter">
@@ -101,14 +103,16 @@ const FooterNav = ({ instance, accounts }) => {
         </Link>
         <a
           className="footerlink"
-        //   onClick={(_) => instance.logoutPopup({ postLogoutRedirectUri: "/" })}
-          onClick={(_) => instance.logoutRedirect({ postLogoutRedirectUri: "/" })}
+          //   onClick={(_) => instance.logoutPopup({ postLogoutRedirectUri: "/" })}
+          onClick={(_) =>
+            instance.logoutRedirect({ postLogoutRedirectUri: "/" })
+          }
         >
           log out
         </a>
       </nav>
     );
-    // not logged in, not many option
+  // not logged in, not many option
   else
     return (
       <nav id="navfooter">
