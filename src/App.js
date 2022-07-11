@@ -15,7 +15,9 @@ const App = () => {
   // Routes for when the user is authenticated, and Routes for them they're not.
   return (
     <BrowserRouter>
-      <h1><Link to="">D.S.</Link></h1>
+      <h1>
+        <Link to="">D.S.</Link>
+      </h1>
       <AuthenticatedTemplate>
         <Routes>
           <Route
@@ -47,13 +49,14 @@ const LoggedIn = ({ instance, accounts }) => {
   //       }).then(res => console.log(res))
   // }, []);
 
-  let sendWebRequest = (_) => {
+  let sendWebRequest = async (_) => {
     instance
       .acquireTokenSilent({
         // TODO: move scope get back to auth config?
         // TODO: determine scope for SA access tokens
         // TODO: enable api access on SA from app registration side
-        scopes: ["OpenID"],
+        // scopes: ["user_impersonation"],
+        scopes: ["https://storage.azure.com/user_impersonation"],
         // scopes: ["User.Read"],
         account: accounts[0],
       })
@@ -62,9 +65,19 @@ const LoggedIn = ({ instance, accounts }) => {
         console.log(response);
         // send fetch request with bearer token as "Authorization" header
         // possibly, Content-Type : application/json
-        // i'm interested in how the SA integration could go w/ file access, might need a
-        // wrapper for that. or even better, an APIM policy?
+        // TODO: set up api.dr3am.space subdomain at namecheap
+        let data = fetch("https://api.dr3am.space/posts$", {
+          method: "GET",
+          mode: "no-cors",
+          headers: {
+            Authorization: bearerHeader, // TODO: set jwt verification on the API side
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ location: "detroit" }),
+        }).then((response) => response.json());
       });
+    // i'm interested in how the SA integration could go w/ file access, might need a
+    // wrapper for that. or even better, an APIM policy?
   };
   return (
     <>
@@ -82,9 +95,9 @@ const LoggedOut = ({ instance, accounts }) => {
   return <p>logged out</p>;
 };
 
-const PageNotFound = _ => {
-    return(<h1>404 time babyyyy</h1>)
-}
+const PageNotFound = (_) => {
+  return <h1>404 time babyyyy</h1>;
+};
 
 // TODO: conditional options based on if the user is logged in or not
 const FooterNav = ({ instance, accounts }) => {
