@@ -1,7 +1,7 @@
 /* imports and variables */
 @font-face {
-  font-family: VCR;
   src: url("./assets/VCR_OSD_MONO_1.001.ttf");
+  font-family: VCR;
 }
 /* * {
   background-color: transparent;
@@ -12,35 +12,58 @@ body {
   color: lightgray;
   font-family: VCR;
 }
+a {
+  text-decoration: none;
+  color: lightgray;
+}
 /* individual page styling */
+
 /* individual component styling */
+/* FOOTER */
+#navfooter {
+  justify-content: space-between;
+  padding-bottom: 5px;
+  position: absolute;
+  display: flex;
+  margin: auto;
+  width: 50vw;
+  bottom: 0;
+  right: 0;
+  left: 0;
+}
+.footerlink {
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  margin: auto;
+  padding: 2px;
+}
 
 /* space background filter */
 #backer {
-  z-index: -100;
   background-image: url("./assets/space.gif");
-  background-size: cover;
-  background-repeat: no-repeat;
   background-blend-mode: normal;
+  background-repeat: no-repeat;
+  background-size: cover;
   position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  z-index: -100;
   bottom: 0;
+  right: 0;
+  left: 0;
+  top: 0;
 }
 #backer::before {
-  content: "";
-  position: absolute;
   background-image: url("./assets/static.gif");
-  pointer-events: none;
-  opacity: 0.1;
-  background-size: cover;
-  background-repeat: no-repeat;
   background-blend-mode: normal;
-  top: 0;
-  left: 0;
-  right: 0;
+  background-repeat: no-repeat;
+  background-size: cover;
+  pointer-events: none;
+  position: absolute;
+  opacity: 0.1;
+  content: "";
   bottom: 0;
+  right: 0;
+  left: 0;
+  top: 0;
 }
 #backer::after {
   content: "";
@@ -56,10 +79,4 @@ body {
     rgba(255, 255, 255, 0),
     rgb(0, 0, 0) 90%
   );
-}
-#footer {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
 }
