@@ -61,19 +61,20 @@ const LoggedIn = ({ instance, accounts }) => {
         account: accounts[0],
       })
       .then((response) => {
-        let bearerHeader = `bearer ${response.accessToken}`;
+        let bearerHeader = `bearer ${response.idToken}`;
         console.log(response);
         // send fetch request with bearer token as "Authorization" header
         // possibly, Content-Type : application/json
         // TODO: set up api.dr3am.space subdomain at namecheap
-        let data = fetch("https://api.dr3am.space/posts$", {
+        let data = fetch("https://api.dr3am.space/i", {
+        // let data = fetch("http://localhost:3000/i", {
           method: "GET",
-          mode: "no-cors",
+        //   mode: "no-cors",
           headers: {
-            Authorization: bearerHeader, // TODO: set jwt verification on the API side
+            "Authorization": bearerHeader, // TODO: set jwt verification on the API side
             "Content-Type": "application/json",
           },
-          body: JSON.stringify({ location: "detroit" }),
+        //   body: JSON.stringify({ location: "detroit" }),
         }).then((response) => response.json());
       });
     // i'm interested in how the SA integration could go w/ file access, might need a
