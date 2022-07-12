@@ -42,13 +42,6 @@ const App = () => {
 };
 
 const LoggedIn = ({ instance, accounts }) => {
-  // useEffect(_ => {
-  //     instance.acquireTokenSilent({
-  //         ...loginRequest(""),
-  //         account: accounts[0],
-  //       }).then(res => console.log(res))
-  // }, []);
-
   let sendWebRequest = async (_) => {
     instance
       .acquireTokenSilent({
@@ -61,34 +54,93 @@ const LoggedIn = ({ instance, accounts }) => {
         account: accounts[0],
       })
       .then((response) => {
-        let bearerHeader = `bearer ${response.idToken}`;
+        let bearerHeader = `bearer ${response.idToken}`; // using idToken, need to adjust scope to get authToken
         console.log(response);
         // send fetch request with bearer token as "Authorization" header
         // possibly, Content-Type : application/json
         // TODO: set up api.dr3am.space subdomain at namecheap
         let data = fetch("https://api.dr3am.space/i", {
-        // let data = fetch("http://localhost:3000/i", {
+          // let data = fetch("http://localhost:3000/i", {
           method: "GET",
-        //   mode: "no-cors",
           headers: {
-            "Authorization": bearerHeader, // TODO: set jwt verification on the API side
-            "Content-Type": "application/json",
+            Authorization: bearerHeader,
+            // "Content-Type": "application/json",
           },
-        //   body: JSON.stringify({ location: "detroit" }),
+          //   body: JSON.stringify({ location: "detroit" }),
         }).then((response) => response.json());
       });
-    // i'm interested in how the SA integration could go w/ file access, might need a
-    // wrapper for that. or even better, an APIM policy?
   };
   return (
     <>
       <p>logged in as {accounts[0]?.idTokenClaims.given_name}</p>
-
+      <p>until testing is concluded, all functionality will be displayed </p>
+      <div className="random dream">
+        <h3>random dream</h3>
+      </div>
+      <div className="dreamfeed">
+        <h3>dream feed</h3>
+      </div>
+      <DreamSubmitForm instance={instance} />
+      <div className="accountInformation">
+        <h3>account information</h3>
+      </div>
       <button onClick={(_) => console.log(instance.getAllAccounts())}>
         who me
       </button>
       <button onClick={(_) => sendWebRequest()}>web request</button>
     </>
+  );
+};
+const DreamFeed = (instance) => {
+  return (
+    <div className="dreamfeed">
+      <h3>your dream feed</h3>
+      <div className="dreamsortselector">
+        <button>closest</button>
+        <button>highest engagement</button>
+      </div>
+    </div>
+  );
+};
+const DreamSubmitForm = (instance) => {
+  let submitDream = async (event) => {
+    event.preventDefault();
+    instance
+      .acquireTokenSilent({
+        // determine correct scope and parameterize from msalConfig
+        scopes: ["https://storage.azure.com/user_impersonation"],
+        account: instance.accounts[0],
+      })
+      .then((response) => {
+        let bearerHeader = `bearer ${response.idToken}`;
+        let submitResult = fetch("https://api.dr3am.space/dream", {
+          method: POST,
+          headers: {
+            Authorization: bearerHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ location: "detroit" }),
+        });
+        console.log(submitResult);
+        // TODO: error handling around dream submit result
+        //      201 -> created successfully, redirect to feed?
+        //      500 -> server error, try again later
+        //      400 -> exists already, too many requests, unauthorized, etc (auto logout?)
+      });
+  };
+  let validateDream = (_) => {
+    //
+    // TODO: add route to api to determine timestamp of last dream submitted by user
+    // edit: actually, we can just prevent the submit eve
+  };
+  return (
+    <div className="dreamsubmitform">
+      <h3>dream submit form</h3>
+      <form onSubmit={submitDream}>
+        <input></input>
+        <button></button>
+      </form>
+    </div>
   );
 };
 
