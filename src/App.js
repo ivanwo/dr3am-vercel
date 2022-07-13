@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   AuthenticatedTemplate,
   UnauthenticatedTemplate,
@@ -42,53 +42,156 @@ const App = () => {
 };
 
 const LoggedIn = ({ instance, accounts }) => {
-  // useEffect(_ => {
-  //     instance.acquireTokenSilent({
-  //         ...loginRequest(""),
-  //         account: accounts[0],
-  //       }).then(res => console.log(res))
-  // }, []);
-
   let sendWebRequest = async (_) => {
     instance
       .acquireTokenSilent({
         // TODO: move scope get back to auth config?
-        // TODO: determine scope for SA access tokens
-        // TODO: enable api access on SA from app registration side
-        // scopes: ["user_impersonation"],
-        scopes: ["https://storage.azure.com/user_impersonation"],
+        // scopes: ["https://storage.azure.com/user_impersonation"],
+        scopes: ["openid"],
         // scopes: ["User.Read"],
         account: accounts[0],
       })
       .then((response) => {
-        let bearerHeader = `bearer ${response.idToken}`;
+        let bearerHeader = `bearer ${response.idToken}`; // using idToken, need to adjust scope to get authToken
         console.log(response);
         // send fetch request with bearer token as "Authorization" header
         // possibly, Content-Type : application/json
         // TODO: set up api.dr3am.space subdomain at namecheap
         let data = fetch("https://api.dr3am.space/i", {
-        // let data = fetch("http://localhost:3000/i", {
+          // let data = fetch("http://localhost:3000/i", {
           method: "GET",
-        //   mode: "no-cors",
           headers: {
-            "Authorization": bearerHeader, // TODO: set jwt verification on the API side
-            "Content-Type": "application/json",
+            Authorization: bearerHeader,
+            // "Content-Type": "application/json",
           },
-        //   body: JSON.stringify({ location: "detroit" }),
+          //   body: JSON.stringify({ location: "detroit" }),
         }).then((response) => response.json());
       });
-    // i'm interested in how the SA integration could go w/ file access, might need a
-    // wrapper for that. or even better, an APIM policy?
   };
   return (
     <>
       <p>logged in as {accounts[0]?.idTokenClaims.given_name}</p>
-
+      <p>until testing is concluded, all functionality will be displayed </p>
+      <div className="random dream">
+        <h3>random dream</h3>
+        <p>think about how to implement this without opening the api...</p>
+      </div>
+      <DreamFeed instance={instance} accounts={accounts} />
+      <DreamSubmitForm instance={instance} accounts={accounts} />
+      <div className="accountInformation">
+        <h3>account information</h3>
+      </div>
       <button onClick={(_) => console.log(instance.getAllAccounts())}>
         who me
       </button>
       <button onClick={(_) => sendWebRequest()}>web request</button>
     </>
+  );
+};
+const DreamFeed = ({ instance, accounts }) => {
+  let [dreamList, setDreamList] = useState([]);
+  let [refreshFlag, setRefreshFlag] = useState(true);
+  
+  useEffect(async (_) => {
+    populateDreamFeed();
+  }, []);
+
+  let populateDreamFeed = (_) => {
+    console.log("loading feed");
+    instance
+      .acquireTokenSilent({
+        // determine correct scope and parameterize from msalConfig
+        scopes: ["https://storage.azure.com/user_impersonation"],
+        account: accounts[0],
+      })
+      .then((response) => {
+        let bearerHeader = `bearer ${response.idToken}`;
+        //   TODO: edit parameters of url to specify which subset of dreams to load
+        // let submitResult = fetch("https://api.dr3am.space/dreams", {
+        let fetchResult = fetch("http://localhost:3000/dreams", {
+          method: "GET",
+          headers: {
+            Authorization: bearerHeader,
+          },
+        })
+          .then((response) => response.json())
+          .then((nextResponse) => setDreamList(nextResponse.dreams));
+        // TODO: error handling around dream submit result
+        //      201 -> created successfully, redirect to feed?
+        //      500 -> server error, try again later
+        //      400 -> exists already, too many requests, unauthorized, etc (auto logout?)
+      });
+  };
+
+  return (
+    <div className="dreamfeedholder">
+      <h3>your dream feed</h3>
+      <div className="dreamsortselector">
+        <p>sort by:</p>
+        <button>closest</button>
+        <button>highest engagement</button>
+        <button onClick={(_) => populateDreamFeed()}>refresh feed</button>
+      </div>
+      <div className="dreamfeed">
+        {dreamList.map((dreamObject) => (
+          <div key={dreamObject.rowKey}>
+            <h4>{dreamObject.location}</h4>
+            <p>{dreamObject.rowKey}</p>
+          </div>
+        ))}
+      </div>
+      <button onClick={(_) => console.log(dreamList)}>list</button>
+    </div>
+  );
+};
+const DreamSubmitForm = ({ instance, accounts }) => {
+  let [formData, setFormData] = useState({ location: "undefined" });
+  let submitDream = async (event) => {
+    event.preventDefault();
+    console.log("submitting dream");
+    instance
+      .acquireTokenSilent({
+        // determine correct scope and parameterize from msalConfig
+        scopes: ["https://storage.azure.com/user_impersonation"],
+        account: accounts[0],
+      })
+      .then((response) => {
+        let bearerHeader = `bearer ${response.idToken}`;
+        // let submitResult = fetch("https://api.dr3am.space/dream", {
+        let submitResult = fetch("http://localhost:3000/dream", {
+          method: "POST",
+          headers: {
+            Authorization: bearerHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData), // change to form data
+        })
+          .then((res) => res.json())
+          .then((data) => console.log(data));
+        // TODO: error handling around dream submit result
+        //      201 -> created successfully, redirect to feed?
+        //      500 -> server error, try again later
+        //      400 -> exists already, too many requests, unauthorized, etc (auto logout?)
+      });
+  };
+  let updateFormData = (event) => {
+    let newFormData = { ...formData };
+    newFormData[event.target.id] = event.target.value;
+    setFormData({ ...newFormData });
+  };
+  let validateDream = (_) => {
+    //
+    // TODO: add route to api to determine timestamp of last dream submitted by user
+    // edit: actually, we can just prevent the submit eve
+  };
+  return (
+    <div className="dreamsubmitform">
+      <h3>dream submit form</h3>
+      <form onSubmit={submitDream}>
+        <input onInput={updateFormData} id="dreamtitle"></input>
+        <button>submit</button>
+      </form>
+    </div>
   );
 };
 
