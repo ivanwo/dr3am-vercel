@@ -7,10 +7,26 @@ import {
 import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
 import { loginRequest } from "../settings/msalConfig";
 
+const env = window.location.host;
+let apiUri = "";
+switch (env) {
+  case "dr3am.space":
+    apiUri = "https://api.dr3am.space";
+    break;
+  case "dev.dr3am.space":
+    apiUri = "https://dev.api.dr3am.space";
+    break;
+  case "localhost:9500":
+    apiUri = "http://localhost:3000";
+    break;
+  default:
+    apiUri = "https://api.imdb.com";
+    break;
+}
+
 const App = () => {
   const { instance } = useMsal();
   const { accounts } = useMsal();
-  //   instance.acquireTokenSilent()
   // Inside the Router, we have two paths beneath the header
   // Routes for when the user is authenticated, and Routes for them they're not.
   return (
@@ -22,7 +38,9 @@ const App = () => {
         <Routes>
           <Route
             path="/"
-            element={<LoggedIn instance={instance} accounts={accounts} />}
+            element={
+              <PrivateLandingPage instance={instance} accounts={accounts} />
+            }
           ></Route>
           <Route path="*" element={<PageNotFound />}></Route>
         </Routes>
@@ -31,7 +49,9 @@ const App = () => {
         <Routes>
           <Route
             path="/"
-            element={<LoggedOut instance={instance} accounts={accounts} />}
+            element={
+              <PublicLandingPage instance={instance} accounts={accounts} />
+            }
           ></Route>
           <Route path="*" element={<PageNotFound />}></Route>
         </Routes>
@@ -41,7 +61,7 @@ const App = () => {
   );
 };
 
-const LoggedIn = ({ instance, accounts }) => {
+const PrivateLandingPage = ({ instance, accounts }) => {
   let sendWebRequest = async (_) => {
     instance
       .acquireTokenSilent({
@@ -57,7 +77,7 @@ const LoggedIn = ({ instance, accounts }) => {
         // send fetch request with bearer token as "Authorization" header
         // possibly, Content-Type : application/json
         // TODO: set up api.dr3am.space subdomain at namecheap
-        let data = fetch("https://api.dr3am.space/i", {
+        let data = fetch(`${apiUri}/i`, {
           // let data = fetch("http://localhost:3000/i", {
           method: "GET",
           headers: {
@@ -90,8 +110,7 @@ const LoggedIn = ({ instance, accounts }) => {
 };
 const DreamFeed = ({ instance, accounts }) => {
   let [dreamList, setDreamList] = useState([]);
-  let [refreshFlag, setRefreshFlag] = useState(true);
-  
+
   useEffect(async (_) => {
     populateDreamFeed();
   }, []);
@@ -107,8 +126,8 @@ const DreamFeed = ({ instance, accounts }) => {
       .then((response) => {
         let bearerHeader = `bearer ${response.idToken}`;
         //   TODO: edit parameters of url to specify which subset of dreams to load
-        // let submitResult = fetch("https://api.dr3am.space/dreams", {
-        let fetchResult = fetch("http://localhost:3000/dreams", {
+        let submitResult = fetch(`${apiUri}/dreams`, {
+          // let fetchResult = fetch("http://localhost:3000/dreams", {
           method: "GET",
           headers: {
             Authorization: bearerHeader,
@@ -157,8 +176,8 @@ const DreamSubmitForm = ({ instance, accounts }) => {
       })
       .then((response) => {
         let bearerHeader = `bearer ${response.idToken}`;
-        // let submitResult = fetch("https://api.dr3am.space/dream", {
-        let submitResult = fetch("http://localhost:3000/dream", {
+        let submitResult = fetch(`${apiUri}/dream`, {
+          // let submitResult = fetch("http://localhost:3000/dream", {
           method: "POST",
           headers: {
             Authorization: bearerHeader,
@@ -195,7 +214,7 @@ const DreamSubmitForm = ({ instance, accounts }) => {
   );
 };
 
-const LoggedOut = ({ instance, accounts }) => {
+const PublicLandingPage = ({ instance, accounts }) => {
   return <p>logged out</p>;
 };
 
