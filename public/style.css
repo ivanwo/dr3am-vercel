@@ -24,7 +24,7 @@ a {
 #navfooter {
   justify-content: space-between;
   padding-bottom: 10px;
-  position: absolute;
+  position: fixed;
   display: flex;
   margin: auto;
   width: 50vw;

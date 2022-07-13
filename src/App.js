@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   AuthenticatedTemplate,
   UnauthenticatedTemplate,
@@ -46,10 +46,8 @@ const LoggedIn = ({ instance, accounts }) => {
     instance
       .acquireTokenSilent({
         // TODO: move scope get back to auth config?
-        // TODO: determine scope for SA access tokens
-        // TODO: enable api access on SA from app registration side
-        // scopes: ["user_impersonation"],
-        scopes: ["https://storage.azure.com/user_impersonation"],
+        // scopes: ["https://storage.azure.com/user_impersonation"],
+        scopes: ["openid"],
         // scopes: ["User.Read"],
         account: accounts[0],
       })
@@ -76,11 +74,10 @@ const LoggedIn = ({ instance, accounts }) => {
       <p>until testing is concluded, all functionality will be displayed </p>
       <div className="random dream">
         <h3>random dream</h3>
+        <p>think about how to implement this without opening the api...</p>
       </div>
-      <div className="dreamfeed">
-        <h3>dream feed</h3>
-      </div>
-      <DreamSubmitForm instance={instance} />
+      <DreamFeed instance={instance} accounts={accounts} />
+      <DreamSubmitForm instance={instance} accounts={accounts} />
       <div className="accountInformation">
         <h3>account information</h3>
       </div>
@@ -91,42 +88,96 @@ const LoggedIn = ({ instance, accounts }) => {
     </>
   );
 };
-const DreamFeed = (instance) => {
-  return (
-    <div className="dreamfeed">
-      <h3>your dream feed</h3>
-      <div className="dreamsortselector">
-        <button>closest</button>
-        <button>highest engagement</button>
-      </div>
-    </div>
-  );
-};
-const DreamSubmitForm = (instance) => {
-  let submitDream = async (event) => {
-    event.preventDefault();
+const DreamFeed = ({ instance, accounts }) => {
+  let [dreamList, setDreamList] = useState([]);
+  let [refreshFlag, setRefreshFlag] = useState(true);
+  
+  useEffect(async (_) => {
+    populateDreamFeed();
+  }, []);
+
+  let populateDreamFeed = (_) => {
+    console.log("loading feed");
     instance
       .acquireTokenSilent({
         // determine correct scope and parameterize from msalConfig
         scopes: ["https://storage.azure.com/user_impersonation"],
-        account: instance.accounts[0],
+        account: accounts[0],
       })
       .then((response) => {
         let bearerHeader = `bearer ${response.idToken}`;
-        let submitResult = fetch("https://api.dr3am.space/dream", {
-          method: POST,
+        //   TODO: edit parameters of url to specify which subset of dreams to load
+        // let submitResult = fetch("https://api.dr3am.space/dreams", {
+        let fetchResult = fetch("http://localhost:3000/dreams", {
+          method: "GET",
           headers: {
             Authorization: bearerHeader,
-            "Content-Type": "application/json",
           },
-          body: JSON.stringify({ location: "detroit" }),
-        });
-        console.log(submitResult);
+        })
+          .then((response) => response.json())
+          .then((nextResponse) => setDreamList(nextResponse.dreams));
         // TODO: error handling around dream submit result
         //      201 -> created successfully, redirect to feed?
         //      500 -> server error, try again later
         //      400 -> exists already, too many requests, unauthorized, etc (auto logout?)
       });
+  };
+
+  return (
+    <div className="dreamfeedholder">
+      <h3>your dream feed</h3>
+      <div className="dreamsortselector">
+        <p>sort by:</p>
+        <button>closest</button>
+        <button>highest engagement</button>
+        <button onClick={(_) => populateDreamFeed()}>refresh feed</button>
+      </div>
+      <div className="dreamfeed">
+        {dreamList.map((dreamObject) => (
+          <div key={dreamObject.rowKey}>
+            <h4>{dreamObject.location}</h4>
+            <p>{dreamObject.rowKey}</p>
+          </div>
+        ))}
+      </div>
+      <button onClick={(_) => console.log(dreamList)}>list</button>
+    </div>
+  );
+};
+const DreamSubmitForm = ({ instance, accounts }) => {
+  let [formData, setFormData] = useState({ location: "undefined" });
+  let submitDream = async (event) => {
+    event.preventDefault();
+    console.log("submitting dream");
+    instance
+      .acquireTokenSilent({
+        // determine correct scope and parameterize from msalConfig
+        scopes: ["https://storage.azure.com/user_impersonation"],
+        account: accounts[0],
+      })
+      .then((response) => {
+        let bearerHeader = `bearer ${response.idToken}`;
+        // let submitResult = fetch("https://api.dr3am.space/dream", {
+        let submitResult = fetch("http://localhost:3000/dream", {
+          method: "POST",
+          headers: {
+            Authorization: bearerHeader,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(formData), // change to form data
+        })
+          .then((res) => res.json())
+          .then((data) => console.log(data));
+        // TODO: error handling around dream submit result
+        //      201 -> created successfully, redirect to feed?
+        //      500 -> server error, try again later
+        //      400 -> exists already, too many requests, unauthorized, etc (auto logout?)
+      });
+  };
+  let updateFormData = (event) => {
+    let newFormData = { ...formData };
+    newFormData[event.target.id] = event.target.value;
+    setFormData({ ...newFormData });
   };
   let validateDream = (_) => {
     //
@@ -137,8 +188,8 @@ const DreamSubmitForm = (instance) => {
     <div className="dreamsubmitform">
       <h3>dream submit form</h3>
       <form onSubmit={submitDream}>
-        <input></input>
-        <button></button>
+        <input onInput={updateFormData} id="dreamtitle"></input>
+        <button>submit</button>
       </form>
     </div>
   );
