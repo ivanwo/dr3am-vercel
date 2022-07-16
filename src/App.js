@@ -4,7 +4,7 @@ import {
   UnauthenticatedTemplate,
   useMsal,
 } from "@azure/msal-react";
-import { BrowserRouter, Routes, Route, Link } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
 import { loginRequest } from "../settings/msalConfig";
 
 const env = window.location.host;
@@ -42,6 +42,10 @@ const App = () => {
               <PrivateLandingPage instance={instance} accounts={accounts} />
             }
           ></Route>
+          <Route path="/about" element={<PrivateAboutPage instance={instance} accounts={accounts} />}></Route>
+          <Route path="/feed" element={<DreamFeed instance={instance} accounts={accounts} />}></Route>
+          <Route path="/me" element={<UserPage instance={instance} accounts={accounts} />}></Route>
+          <Route path="/new" element={<DreamSubmitForm instance={instance} accounts={accounts} />}></Route>
           <Route path="*" element={<PageNotFound />}></Route>
         </Routes>
       </AuthenticatedTemplate>
@@ -60,7 +64,12 @@ const App = () => {
     </BrowserRouter>
   );
 };
-
+const PrivateAboutPage = ({ instance, accounts }) => {
+    return(<><h1>about project</h1>
+    <p>maybe i slap some graphs here?</p>
+    <p>data reports from the last month?</p>
+    <p>how to sleep and dream better?</p></>)
+}
 const PrivateLandingPage = ({ instance, accounts }) => {
   let sendWebRequest = async (_) => {
     instance
@@ -75,16 +84,11 @@ const PrivateLandingPage = ({ instance, accounts }) => {
         let bearerHeader = `bearer ${response.idToken}`; // using idToken, need to adjust scope to get authToken
         console.log(response);
         // send fetch request with bearer token as "Authorization" header
-        // possibly, Content-Type : application/json
-        // TODO: set up api.dr3am.space subdomain at namecheap
         let data = fetch(`${apiUri}/i`, {
-          // let data = fetch("http://localhost:3000/i", {
           method: "GET",
           headers: {
             Authorization: bearerHeader,
-            // "Content-Type": "application/json",
           },
-          //   body: JSON.stringify({ location: "detroit" }),
         }).then((response) => response.json());
       });
   };
@@ -96,8 +100,6 @@ const PrivateLandingPage = ({ instance, accounts }) => {
         <h3>random dream</h3>
         <p>think about how to implement this without opening the api...</p>
       </div>
-      <DreamFeed instance={instance} accounts={accounts} />
-      <DreamSubmitForm instance={instance} accounts={accounts} />
       <div className="accountInformation">
         <h3>account information</h3>
       </div>
@@ -111,7 +113,7 @@ const PrivateLandingPage = ({ instance, accounts }) => {
 const DreamFeed = ({ instance, accounts }) => {
   let [dreamList, setDreamList] = useState([]);
 
-  useEffect(async (_) => {
+  useEffect((_) => {
     populateDreamFeed();
   }, []);
 
@@ -130,7 +132,7 @@ const DreamFeed = ({ instance, accounts }) => {
           // let fetchResult = fetch("http://localhost:3000/dreams", {
           method: "GET",
           headers: {
-            Authorization: bearerHeader,
+            Authorization: bearerHeader, 
           },
         })
           .then((response) => response.json())
@@ -152,14 +154,17 @@ const DreamFeed = ({ instance, accounts }) => {
         <button onClick={(_) => populateDreamFeed()}>refresh feed</button>
       </div>
       <div className="dreamfeed">
-        {dreamList.map((dreamObject) => (
-          <div key={dreamObject.rowKey}>
-            <h4>{dreamObject.location}</h4>
-            <p>{dreamObject.rowKey}</p>
-          </div>
-        ))}
+        {!dreamList ?(<></>): (
+          dreamList.map((dreamObject) => (
+            <div key={dreamObject.rowKey} className="dreamobject">
+              <h5>{dreamObject.dreamtitle}</h5>
+              <p>{dreamObject.location}</p>
+              <p>{dreamObject.rowkey}</p>
+              <p>{dreamObject.timestamp}</p>
+            </div>
+          ))
+        )}
       </div>
-      <button onClick={(_) => console.log(dreamList)}>list</button>
     </div>
   );
 };
@@ -215,8 +220,25 @@ const DreamSubmitForm = ({ instance, accounts }) => {
 };
 
 const PublicLandingPage = ({ instance, accounts }) => {
-  return <p>logged out</p>;
+  return (
+    <div>
+      <h1>DR3AM.SPACE</h1>
+      <h2>hot dreams in your area</h2>
+      <p>
+        track your dreams, view free range local dreams, view collective
+        unconscious trends!
+      </p>
+      <p>
+        dr3am.space is a platform that will facilitate these and other
+        activities.
+      </p>
+    </div>
+  );
 };
+
+const UserPage = ({instance, accounts}) => {
+    return <>me page</>
+}
 
 const PageNotFound = (_) => {
   return <h1>404 time babyyyy</h1>;
@@ -224,25 +246,28 @@ const PageNotFound = (_) => {
 
 // TODO: conditional options based on if the user is logged in or not
 const FooterNav = ({ instance, accounts }) => {
+  let location = useLocation();
+
   // more options for a logged in user in the nav menu
   if (accounts[0])
     return (
       <nav id="navfooter">
-        <Link to="about" className="footerlink">
+        {/* <Link to="about" className={currentLocation == "/about" ? "footerlink activelink" : "footerlink"}> */}
+        <Link to="about" className={"footerlink"+ (location.pathname == "/about" ? " activelink" : "")}>
           about
         </Link>
-        <Link to="user" className="footerlink">
+        <Link to="me" className={"footerlink"+ (location.pathname == "/me" ? " activelink" : "")}>
           {accounts[0]?.idTokenClaims.given_name}'s dreams
         </Link>
-        <Link to="new" className="footerlink">
+        <Link to="new" className={"footerlink"+ (location.pathname == "/new" ? " activelink" : "")}>
           new dream
         </Link>
+        <Link to="feed" className={"footerlink"+ (location.pathname == "/feed" ? " activelink" : "")}>feed</Link>
         <a
           className="footerlink"
-          //   onClick={(_) => instance.logoutPopup({ postLogoutRedirectUri: "/" })}
           onClick={(_) =>
             instance.logoutRedirect({ postLogoutRedirectUri: "/" })
-          }
+          } // let user pick their own logout redirect? lmao
         >
           log out
         </a>
