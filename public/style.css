@@ -46,7 +46,12 @@ a {
   cursor: pointer;
 }
 .activelink {
-  filter: drop-shadow(1px 1px #4444dd);
+  /* filter: drop-shadow(1px 1px #4444dd); */
+  text-shadow: 3px 3px #6a0dad;
+  background-color: #6a0dad;
+}
+.activelogo {   
+  text-shadow: 3px 3px #6a0dad;
 }
 /* space background filter */
 #spaceBacker {

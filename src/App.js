@@ -31,9 +31,7 @@ const App = () => {
   // Routes for when the user is authenticated, and Routes for them they're not.
   return (
     <BrowserRouter>
-      <h1>
-        <Link to="">D.S.</Link>
-      </h1>
+      <HeaderNav instance={instance} accounts={accounts}/>
       <AuthenticatedTemplate>
         <Routes>
           <Route
@@ -222,8 +220,7 @@ const DreamSubmitForm = ({ instance, accounts }) => {
 const PublicLandingPage = ({ instance, accounts }) => {
   return (
     <div>
-      <h1>DR3AM.SPACE</h1>
-      <h2>hot dreams in your area</h2>
+      <h2>hot dreams in your area!!</h2>
       <p>
         track your dreams, view free range local dreams, view collective
         unconscious trends!
@@ -244,6 +241,12 @@ const PageNotFound = (_) => {
   return <h1>404 time babyyyy</h1>;
 };
 
+const HeaderNav = ({instance, accounts}) => {
+  let location = useLocation();
+  return <h1>
+    <Link to="/" className={location.pathname == "/" ? "activelogo" : ""}>DR3AM.SPACE</Link>
+  </h1>
+}
 // TODO: conditional options based on if the user is logged in or not
 const FooterNav = ({ instance, accounts }) => {
   let location = useLocation();
@@ -252,7 +255,6 @@ const FooterNav = ({ instance, accounts }) => {
   if (accounts[0])
     return (
       <nav id="navfooter">
-        {/* <Link to="about" className={currentLocation == "/about" ? "footerlink activelink" : "footerlink"}> */}
         <Link to="about" className={"footerlink"+ (location.pathname == "/about" ? " activelink" : "")}>
           about
         </Link>
