@@ -26,6 +26,16 @@ a {
 .dreamobject {
   border: 1px solid lightgrey;
 }
+#accountform{
+  display: flex;
+  flex-direction: column;
+}
+.usernamevalid{
+  background-color: #9892b3;
+}
+.usernameinvalid{
+  background-color: #d17282;
+}
 /* FOOTER */
 #navfooter {
   justify-content: space-between;
