@@ -9,9 +9,12 @@
 /* main body styling */
 body {
   background-color: black;
+  padding-bottom: 25px;
   text-align: center;
   color: lightgray;
   font-family: VCR;
+  max-width: 80vw;
+  margin: auto;
 }
 a {
   text-decoration: none;
@@ -20,6 +23,19 @@ a {
 /* individual page styling */
 
 /* individual component styling */
+.dreamobject {
+  border: 1px solid lightgrey;
+}
+#accountform{
+  display: flex;
+  flex-direction: column;
+}
+.usernamevalid{
+  background-color: #9892b3;
+}
+.usernameinvalid{
+  background-color: #d17282;
+}
 /* FOOTER */
 #navfooter {
   justify-content: space-between;
@@ -39,7 +55,14 @@ a {
   padding: 2px;
   cursor: pointer;
 }
-
+.activelink {
+  /* filter: drop-shadow(1px 1px #4444dd); */
+  text-shadow: 3px 3px #6a0dad;
+  background-color: #6a0dad;
+}
+.activelogo {   
+  text-shadow: 3px 3px #6a0dad;
+}
 /* space background filter */
 #spaceBacker {
   overflow: hidden;
@@ -65,4 +88,19 @@ a {
   right: 0;
   left: 0;
   top: 0;
+}
+/* MOBILE STYLING */
+@media screen and (max-width: 600px) {
+  /* main body */
+  body {
+    max-width: 100vw;
+  }
+  /* individual page styling */
+  /* individual component styling */
+}
+/* REEEEALLY BIG SCREENS */
+@media screen and (min-width: 2000px) {
+  /* main body */
+  /* individual page styling */
+  /* individual component styling */
 }
