@@ -1,53 +1,106 @@
+/* imports and variables */
 @font-face {
-  font-family: VCR;
   src: url("./assets/VCR_OSD_MONO_1.001.ttf");
-}
-body {
-  text-align: center;
-}
-h1 {
-  color: blue;
   font-family: VCR;
 }
+/* * {
+  background-color: transparent;
+} */
+/* main body styling */
+body {
+  background-color: black;
+  padding-bottom: 25px;
+  text-align: center;
+  color: lightgray;
+  font-family: VCR;
+  max-width: 80vw;
+  margin: auto;
+}
+a {
+  text-decoration: none;
+  color: lightgray;
+}
+/* individual page styling */
 
+/* individual component styling */
+.dreamobject {
+  border: 1px solid lightgrey;
+}
+#accountform{
+  display: flex;
+  flex-direction: column;
+}
+.usernamevalid{
+  background-color: #9892b3;
+}
+.usernameinvalid{
+  background-color: #d17282;
+}
+/* FOOTER */
+#navfooter {
+  justify-content: space-between;
+  padding-bottom: 10px;
+  position: fixed;
+  display: flex;
+  margin: auto;
+  width: 50vw;
+  bottom: 0;
+  right: 0;
+  left: 0;
+}
+.footerlink {
+  border: 1px solid lightgrey;
+  border-radius: 5px;
+  margin: auto;
+  padding: 2px;
+  cursor: pointer;
+}
+.activelink {
+  /* filter: drop-shadow(1px 1px #4444dd); */
+  text-shadow: 3px 3px #6a0dad;
+  background-color: #6a0dad;
+}
+.activelogo {   
+  text-shadow: 3px 3px #6a0dad;
+}
 /* space background filter */
-#root {
-  background-image: url("./assets/space.gif");
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-blend-mode: normal;
-  position: absolute;
-  top: 0;
-  left: 0;
+#spaceBacker {
+  overflow: hidden;
+  min-height: 100%;
+  position: fixed;
+  min-width: 100%;
+  z-index: -100;
+  bottom: 0;
   right: 0;
-  bottom: 0;
-}
-#root::before {
-  content: "";
-  position: absolute;
-  background-image: url("./assets/static.gif");
-  pointer-events: none;
-  opacity: 0.1;
-  background-size: cover;
-  background-repeat: no-repeat;
-  background-blend-mode: normal;
+  left: 0;
   top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
 }
-#root::after {
-  content: "";
-  position: absolute;
-  z-index: 1;
-  bottom: 0;
-  left: 0;
-  width: 100vw;
+#staticFronter {
+  /* background-image: linear-gradient(to bottom, rgba(255,255,255,1),rgba(255,255,255,0)); */
   pointer-events: none;
-  height: 100vh;
-  background-image: linear-gradient(
-    to bottom,
-    rgba(255, 255, 255, 0),
-    rgb(0, 0, 0) 90%
-  );
+  overflow: hidden;
+  min-height: 100%;
+  min-width: 100%;
+  position: fixed;
+  z-index: 100;
+  opacity: 0.12;
+  bottom: 0;
+  right: 0;
+  left: 0;
+  top: 0;
+}
+/* MOBILE STYLING */
+@media screen and (max-width: 600px) {
+  /* main body */
+  body {
+    max-width: 100vw;
+  }
+  /* individual page styling */
+  /* individual component styling */
+}
+/* REEEEALLY BIG SCREENS */
+@media screen and (min-width: 2000px) {
+  /* main body */
+  /* individual page styling */
+  /* individual component styling */
 }
