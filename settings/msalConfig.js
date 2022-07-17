@@ -4,6 +4,8 @@ import { LogLevel } from "@azure/msal-browser";
 // auth data still wrong, need to do more research
 //
 export const msalConfig = {
+  idToken : "",
+  currentUser: {signupcompleted:false},
   auth: {
     clientId: "05ce2ef8-cf62-4442-a178-d8cef47405b0",
     // authority: "https://dr3amspace.b2clogin.com/tfp/1234293e-414e-40f2-af88-bc1ed993f133",
