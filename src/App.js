@@ -311,7 +311,6 @@ const PrivateLandingPage = ({ instance, accounts }) => {
                 <li>patching schedule</li>
                 <li>optimizations</li>
               </ul>
-              <button onClick={(_) => console.log(msalConfig)}>config</button>
             </div>
             <FooterNav instance={instance} accounts={accounts}></FooterNav>
           </>
@@ -322,9 +321,6 @@ const PrivateLandingPage = ({ instance, accounts }) => {
               we just need a couple more factoids before we can set your
               unconscious free
             </p>
-            {/* <button onClick={(_) => console.log(token)}>me token</button>
-            <button onClick={(_) => console.log(accounts[0])}>who me</button>
-            <button onClick={(_) => console.log(formData)}>form data</button> */}
             <form onSubmit={requestAccountCreation} id="accountform">
               <label>
                 username:{" "}
@@ -495,7 +491,6 @@ const DreamSubmitForm = ({ instance, accounts }) => {
   return(
   <div className="dreamsubmitpage">
     <h3>dream submit form</h3>
-    <button onClick={(_) => console.log(formData)}>form data</button>
     <form onSubmit={submitDream} id="dreamsubmitform">
       <label>
         dream took place in {msalConfig.currentUser.region}?{" "}
@@ -672,9 +667,7 @@ const FooterNav = ({ instance, accounts }) => {
           </a>
         </nav>
       ) : (
-        <>
-          <button onClick={(_) => console.log(localStorage)}>config</button>
-        </>
+        <></>
       )}
     </>
   );
