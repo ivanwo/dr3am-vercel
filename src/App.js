@@ -446,7 +446,7 @@ const DreamFeed = ({ instance, accounts }) => {
   );
 };
 const DreamSubmitForm = ({ instance, accounts }) => {
-  let [formData, setFormData] = useState({ location: "undefined" });
+  let [formData, setFormData] = useState({ location: msalConfig.currentUser.region, mood: "🤮" });
   let submitDream = async (event) => {
     event.preventDefault();
     console.log("submitting dream");
@@ -560,6 +560,7 @@ const DreamSubmitForm = ({ instance, accounts }) => {
       <input onInput={updateFormData} id="dreamtitle"></input>
       <label>content</label>
       <textarea onInput={updateFormData} id="dreamcontent"></textarea>
+      <button type="submit">submit dream</button>
     </form>
   </div>);
 };
