@@ -13,14 +13,14 @@ body {
   text-align: center;
   color: lightgray;
   font-family: VCR;
-  max-width: 80vw;
+  max-width: 70vw;
   margin: auto;
 }
 a {
   text-decoration: none;
   color: lightgray;
 }
-textarea { 
+textarea {
   resize: none;
 }
 li {
@@ -29,54 +29,91 @@ li {
 /* individual page styling */
 
 /* individual component styling */
-#dreamsubmitform{
+.dreamsortselector {
+  border: 1px solid white;
   display: flex;
-  flex-direction: column;
+  justify-content: space-evenly;
 }
-#moodselector{
+.dreamsortselector * {
+  padding: 5px;
+  margin: 0;
+}
+#dreamsubmitform {
+  flex-direction: column;
   display: flex;
+  margin: auto;
+  width: 80%;
+}
+#moodselector {
   flex-direction: column;
   align-items: center;
+  display: flex;
 }
 #moodselectorlist {
-  display: flex;
   flex-direction: row;
+  display: flex;
 }
 .moodchoice {
-  padding: 0px 5px;
   transition: 0.5s ease-in-out;
+  padding: 0px 5px;
   font-size: 50px;
-  cursor: pointer
+  cursor: pointer;
 }
 .activemood {
   text-shadow: -5px -5px 3px #6a0dad;
 }
-.moodchoice:hover{
+.moodchoice:hover {
   transform: scale(1.1);
 }
 .dreamobject {
   border: 1px solid lightgrey;
-}
-#accountform{
-  display: flex;
+  justify-content: center;
   flex-direction: column;
+  display: flex;
 }
-.usernamevalid{
+.dreamheader {
+  justify-content: space-between;
+  display: flex;
+  margin: auto;
+  width: 70%;
+}
+.dreamheader p{
+  padding: 5px;
+  margin: 0;
+}
+.dreammood {
+  font-size: 50px;
+  margin:0;
+  padding: 0;
+  width: 10%;
+}
+.dreamtitle {
+  text-align: center;
+  width: 90%;
+}
+.bottomborder{
+  border-bottom: 1px solid white;
+}
+#accountform {
+  flex-direction: column;
+  display: flex;
+}
+.usernamevalid {
   background-color: #9892b3;
 }
-.usernameinvalid{
+.usernameinvalid {
   background-color: #d17282;
 }
 /* header */
 #headernav {
   transition: 0.5s ease-in-out;
 }
-#headernav::after{
+#headernav::after {
   position: absolute;
   color: #9892b3;
-  padding: 5px;
   font-size: 15px;
-  content:"alpha"
+  content: "alpha";
+  padding: 5px;
 }
 #headernav:hover {
   transform: scale(1.05);
@@ -84,7 +121,7 @@ li {
 /* FOOTER */
 #navfooter {
   justify-content: space-between;
-  padding-bottom: 10px;
+  padding-bottom: 20px;
   position: fixed;
   display: flex;
   margin: auto;
@@ -101,7 +138,7 @@ li {
   margin: auto;
   padding: 2px;
 }
-.footerlink:hover{
+.footerlink:hover {
   box-shadow: 0px 0px 20px 1px #6a0dad;
   border: 1px solid lightgrey;
   transform: scaleY(1.25);
@@ -111,14 +148,15 @@ li {
   text-shadow: 3px 3px #6a0dad;
   background-color: #6a0dad;
 }
-.activelogo {   
-  transition: 0.5s ease-in-out;
+.activelogo {
   text-shadow: 3px 3px #6a0dad;
+  transition: 0.5s ease-in-out;
 }
 /* space background filter */
 #spaceBacker {
-  overflow: hidden;
+  pointer-events: none;
   min-height: 100%;
+  overflow: hidden;
   position: fixed;
   min-width: 100%;
   z-index: -100;
@@ -134,8 +172,8 @@ li {
   min-height: 100%;
   min-width: 100%;
   position: fixed;
-  z-index: 100;
   opacity: 0.12;
+  z-index: 100;
   bottom: 0;
   right: 0;
   left: 0;
@@ -147,11 +185,34 @@ li {
   body {
     max-width: 100vw;
   }
+  .dreamheader {
+    width: 100%;
+  }
+  #dreamsubmitform {
+    width: 100vw;
+  }
+  #navfooter {
+    width: 100vw;
+  }
   /* individual page styling */
   /* individual component styling */
 }
 /* REEEEALLY BIG SCREENS */
-@media screen and (min-width: 2000px) {
+@media screen and (min-width: 1500px) {
+  .dreamobject {
+    width: 900px;
+    margin: auto;
+  }
+  #dreamsubmitform {
+    max-width: 900px;
+  }
+  .dreamsortselector {
+    max-width: 900px;
+    margin: auto;
+  }
+  #navfooter {
+    max-width: 900px;
+  }
   /* main body */
   /* individual page styling */
   /* individual component styling */
