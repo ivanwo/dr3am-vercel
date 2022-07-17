@@ -11,7 +11,7 @@ import {
   Link,
   useLocation,
 } from "react-router-dom";
-import { loginRequest } from "../settings/msalConfig";
+import { loginRequest, msalConfig } from "../settings/msalConfig";
 
 const env = window.location.host;
 let apiUri = "";
@@ -33,6 +33,51 @@ switch (env) {
 const App = () => {
   const { instance } = useMsal();
   const { accounts } = useMsal();
+
+  useEffect((_) => {
+    // on load, no matter what page you're on check if the user is already logged in
+    // if session exists in localstorage
+    if (localStorage.idToken != null && localStorage.currentUser != null) {
+      console.log("session exists");
+      msalConfig.currentUser = JSON.parse(localStorage.currentUser);
+      msalConfig.idToken = localStorage.idToken;
+      console.log(msalConfig.currentUser);
+    } else {
+      console.log("no session");
+      // if session exists in memory (maybe not what we want? see above storage)
+      if (msalConfig.idToken == "") {
+        // let tempToken = "";
+        instance
+          .acquireTokenSilent({
+            scopes: ["https://storage.azure.com/user_impersonation"],
+            account: accounts[0],
+          })
+          .then((response) => {
+            // tempToken = response.idToken;
+            msalConfig.idToken = response.idToken;
+            localStorage.setItem("idToken", response.idToken);
+          })
+          .then((nextResponse) => {
+            let userData = fetch(`${apiUri}/user`, {
+              method: "GET",
+              headers: {
+                Authorization: `bearer ${msalConfig.idToken}`,
+              },
+            })
+              .then((response) => response.json())
+              .then((nextResponse) => {
+                if (nextResponse.signupcompleted) {
+                  msalConfig.currentUser = nextResponse;
+                  localStorage.setItem(
+                    "currentUser",
+                    JSON.stringify(nextResponse)
+                  );
+                }
+              });
+          });
+      } else console.log("? ? ?");
+    }
+  }, []);
   // Inside the Router, we have two paths beneath the header
   // Routes for when the user is authenticated, and Routes for them they're not.
   return (
@@ -43,10 +88,7 @@ const App = () => {
           <Route
             path="/"
             element={
-              <PrivateLandingPage
-                instance={instance}
-                accounts={accounts}
-              />
+              <PrivateLandingPage instance={instance} accounts={accounts} />
             }
           ></Route>
           <Route
@@ -71,6 +113,7 @@ const App = () => {
           ></Route>
           <Route path="*" element={<PageNotFound />}></Route>
         </Routes>
+        <FooterNav instance={instance} accounts={accounts}></FooterNav>
       </AuthenticatedTemplate>
       <UnauthenticatedTemplate>
         <Routes>
@@ -86,6 +129,7 @@ const App = () => {
     </BrowserRouter>
   );
 };
+
 const PrivateAboutPage = ({ instance, accounts }) => {
   return (
     <>
@@ -93,15 +137,15 @@ const PrivateAboutPage = ({ instance, accounts }) => {
       <p>maybe i slap some graphs here?</p>
       <p>data reports from the last month?</p>
       <p>how to sleep and dream better?</p>
-      <FooterNav instance={instance} accounts={accounts}></FooterNav>
     </>
   );
 };
-const PrivateLandingPage = ({ instance, accounts}) => {
+
+const PrivateLandingPage = ({ instance, accounts }) => {
   let [token, setToken] = useState({});
   let [usernameIsFree, setUsernameIsFree] = useState(false);
   let [completeUser, setCompleteUser] = useState(false);
-  let [currentUser, setCurrentUser] = useState({signupcompleted:false});
+  let [currentUser, setCurrentUser] = useState({ signupcompleted: null });
   let [formData, setFormData] = useState({
     RowKey: accounts[0].localAccountId,
     region: "detroit",
@@ -109,28 +153,41 @@ const PrivateLandingPage = ({ instance, accounts}) => {
     termsofservice: "",
     adultuser: "",
   });
+  // TODO: move this up to the root app level
   useEffect((_) => {
     // get token when the user first gets to the page
     let tempToken = "";
-    instance
-      .acquireTokenSilent({
-        // determine correct scope and parameterize from msalConfig
-        scopes: ["https://storage.azure.com/user_impersonation"],
-        account: accounts[0],
-      })
-      .then((response) => {
-        console.log(response);
-        tempToken = response.idToken;
-        setToken(response.idToken);
-      }).then(nextResponse => {
-        let userData = fetch(`${apiUri}/user`, {
-          method: "GET", 
-          headers: {
-            Authorization: `bearer ${tempToken}` // has to be temp token because react's state setting is too slow for this shit lol
-          }
-        }).then((response) => response.json())
-        .then((nextResponse) => setCurrentUser(nextResponse));
-      });
+    if (!msalConfig.idToken == "") {
+      setToken(msalConfig.idToken);
+      setCompleteUser(true);
+      setCurrentUser(msalConfig.currentUser);
+    } else
+      instance
+        .acquireTokenSilent({
+          // determine correct scope and parameterize from msalConfig
+          scopes: ["https://storage.azure.com/user_impersonation"],
+          account: accounts[0],
+        })
+        .then((response) => {
+          console.log(response);
+          tempToken = response.idToken;
+          msalConfig.idToken = response.idToken;
+          setToken(response.idToken);
+        })
+        .then((nextResponse) => {
+          let userData = fetch(`${apiUri}/user`, {
+            method: "GET",
+            headers: {
+              Authorization: `bearer ${tempToken}`, // has to be temp token because react's state setting is too slow for this shit lol
+            },
+          })
+            .then((response) => response.json())
+            .then((nextResponse) => {
+              if (nextResponse.signupcompleted)
+                msalConfig.currentUser = nextResponse;
+              setCurrentUser(nextResponse);
+            });
+        });
     // if it expires, take them back out and give them a notification about that
     // use new token to check if user account is completed. if not, show them the form
   }, []);
@@ -156,25 +213,31 @@ const PrivateLandingPage = ({ instance, accounts}) => {
     console.log("valid form configuration, submitting to api");
     let submitResult = fetch(`${apiUri}/user`, {
       // let fetchResult = fetch("http://localhost:3000/dreams", {
-        method: "POST",
-        headers: {
-          Authorization: `bearer ${token}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData), // change to form data
+      method: "POST",
+      headers: {
+        Authorization: `bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(formData), // change to form data
     })
       .then((response) => response.json())
       .then((nextResponse) => {
         console.log(nextResponse);
-      }).then(anotherResponse => {
+      })
+      .then((anotherResponse) => {
         let userData = fetch(`${apiUri}/user`, {
-        method: "GET", 
-        headers: {
-          Authorization: `bearer ${token}` // has to be temp token because react's state setting is too slow for this shit lol
-        }
-      }).then((response) => response.json())
-      .then((nextResponse) => setCurrentUser(nextResponse));
-    });
+          method: "GET",
+          headers: {
+            Authorization: `bearer ${token}`, // has to be temp token because react's state setting is too slow for this shit lol
+          },
+        })
+          .then((response) => response.json())
+          .then((nextResponse) => {
+            if (nextResponse.signupcompleted)
+              msalConfig.currentUser = nextResponse;
+            setCurrentUser(nextResponse);
+          });
+      });
   };
 
   let checkUsername = (_) => {
@@ -226,83 +289,97 @@ const PrivateLandingPage = ({ instance, accounts}) => {
   };
 
   // TODO: this is where the beta code would be validated!!!!
-  return (
-    <>
-    <button onClick={_ => console.log(currentUser)}>current user</button>
-      {currentUser.signupcompleted ? (
-        <>
+  if (currentUser.signupcompleted == null) return <>loading...</>;
+  else
+    return (
+      <>
+        {/* <button onClick={(_) => console.log(currentUser)}>current user</button> */}
+        {currentUser.signupcompleted ? (
+          <>
+            <div>
+              <h3>
+                account is fully completed! feel free to use the options on the
+                nav below
+              </h3>
+              <h4>news element?</h4>
+              <ul>
+                <li>new features</li>
+                <li>patching schedule</li>
+                <li>optimizations</li>
+              </ul>
+              <button onClick={(_) => console.log(msalConfig)}>config</button>
+            </div>
+            <FooterNav instance={instance} accounts={accounts}></FooterNav>
+          </>
+        ) : (
           <div>
-            <h3>account is fully completed</h3>
-          </div>
-          <FooterNav instance={instance} accounts={accounts}></FooterNav>
-        </>
-      ) : (
-        <div>
-          <h3>email validated!</h3>
-          <p>
-            we just need a couple more factoids before we can set your
-            unconscious free
-          </p>
-          <button onClick={_ => console.log(token)}>me token</button>
-          <button onClick={(_) => console.log(accounts[0])}>who me</button>
-          <button onClick={(_) => console.log(formData)}>form data</button>
-          <form onSubmit={requestAccountCreation} id="accountform">
-            <label>
-              username:{" "}
-              <input
-                id="username"
-                onChange={updateFormData}
-                className={usernameIsFree ? "usernamevalid" : "usernameinvalid"}
-              ></input>
-              <button onClick={(_) => checkUsername()} type="button">
-                check username
+            <h3>email validated!</h3>
+            <p>
+              we just need a couple more factoids before we can set your
+              unconscious free
+            </p>
+            {/* <button onClick={(_) => console.log(token)}>me token</button>
+            <button onClick={(_) => console.log(accounts[0])}>who me</button>
+            <button onClick={(_) => console.log(formData)}>form data</button> */}
+            <form onSubmit={requestAccountCreation} id="accountform">
+              <label>
+                username:{" "}
+                <input
+                  id="username"
+                  onChange={updateFormData}
+                  className={
+                    usernameIsFree ? "usernamevalid" : "usernameinvalid"
+                  }
+                ></input>
+                <button onClick={(_) => checkUsername()} type="button">
+                  check username
+                </button>
+              </label>
+              {/* TODO: replace drop down selector with a location service auto-mapping. */}
+              <label>
+                conscious region:
+                <select id="region" onChange={updateFormData}>
+                  <option value="detroit" defaultValue={true}>
+                    detroit
+                  </option>
+                  <option value="traverse city">traverse city</option>
+                  <option value="holland">holland</option>
+                </select>
+              </label>
+              <label title="tough shit, idiot!">don't see your region?</label>
+              <label>
+                i have read and agree to the{" "}
+                <a href="https://www.google.com/search?client=firefox-b-1-d&q=how+to+write+a+terms+of+service+agreement+for+a+website">
+                  terms of service
+                </a>
+                <input
+                  type="checkbox"
+                  id="termsofservice"
+                  onChange={updateFormData}
+                ></input>
+              </label>
+              <label>
+                i am 18 years of age or older
+                <input
+                  type="checkbox"
+                  id="adultuser"
+                  onChange={updateFormData}
+                ></input>
+              </label>
+              <button onClick={requestAccountCreation}>sign me up!</button>
+              <button
+                onClick={(_) =>
+                  console.log("i should remove this before i'm done")
+                }
+                type="button"
+              >
+                never mind, i've changed my mind
               </button>
-            </label>
-            {/* TODO: replace drop down selector with a location service auto-mapping. */}
-            <label>
-              conscious region:
-              <select id="region" onChange={updateFormData}>
-                <option value="detroit" selected>
-                  detroit
-                </option>
-                <option value="traverse city">traverse city</option>
-                <option value="holland">holland</option>
-              </select>
-            </label>
-            <label title="tough shit, idiot!">don't see your region?</label>
-            <label>
-              i have read and agree to the{" "}
-              <a href="https://www.google.com/search?client=firefox-b-1-d&q=how+to+write+a+terms+of+service+agreement+for+a+website">
-                terms of service
-              </a>
-              <input
-                type="checkbox"
-                id="termsofservice"
-                onChange={updateFormData}
-              ></input>
-            </label>
-            <label>
-              i am 18 years of age or older
-              <input
-                type="checkbox"
-                id="adultuser"
-                onChange={updateFormData}
-              ></input>
-            </label>
-            <button onClick={requestAccountCreation}>sign me up!</button>
-            <button
-              onClick={(_) =>
-                console.log("i should remove this before i'm done")
-              }
-              type="button"
-            >
-              never mind, i've changed my mind
-            </button>
-          </form>
-        </div>
-      )}
-    </>
-  );
+            </form>
+          </div>
+        )}
+      </>
+    );
 };
 const DreamFeed = ({ instance, accounts }) => {
   let [dreamList, setDreamList] = useState([]);
@@ -361,7 +438,6 @@ const DreamFeed = ({ instance, accounts }) => {
           ))
         )}
       </div>
-      <FooterNav instance={instance} accounts={accounts}></FooterNav>
     </div>
   );
 };
@@ -412,7 +488,6 @@ const DreamSubmitForm = ({ instance, accounts }) => {
         <input onInput={updateFormData} id="dreamtitle"></input>
         <button>submit</button>
       </form>
-      <FooterNav instance={instance} accounts={accounts}></FooterNav>
     </div>
   );
 };
@@ -444,7 +519,16 @@ const PublicLandingPage = ({ instance, accounts }) => {
 };
 
 const UserPage = ({ instance, accounts }) => {
-  return <>me page</>;
+  return (
+    <>
+      <h3>about {msalConfig.currentUser.username}</h3>
+      {Object.keys(msalConfig.currentUser).map((key) => (
+        <p key={key}>
+          {key} : {msalConfig.currentUser[key]}
+        </p>
+      ))}
+    </>
+  );
 };
 
 const PageNotFound = (_) => {
@@ -466,46 +550,57 @@ const FooterNav = ({ instance, accounts }) => {
   let location = useLocation();
 
   return (
-    <nav id="navfooter">
-      <Link
-        to="about"
-        className={
-          "footerlink" + (location.pathname == "/about" ? " activelink" : "")
-        }
-      >
-        about
-      </Link>
-      <Link
-        to="me"
-        className={
-          "footerlink" + (location.pathname == "/me" ? " activelink" : "")
-        }
-      >
-        {accounts[0]?.idTokenClaims.given_name}'s dreams
-      </Link>
-      <Link
-        to="new"
-        className={
-          "footerlink" + (location.pathname == "/new" ? " activelink" : "")
-        }
-      >
-        new dream
-      </Link>
-      <Link
-        to="feed"
-        className={
-          "footerlink" + (location.pathname == "/feed" ? " activelink" : "")
-        }
-      >
-        feed
-      </Link>
-      <a
-        className="footerlink"
-        onClick={(_) => instance.logoutRedirect({ postLogoutRedirectUri: "/" })} // let user pick their own logout redirect? lmao
-      >
-        log out
-      </a>
-    </nav>
+    <>
+      {msalConfig.currentUser.signupcompleted ? (
+        <nav id="navfooter">
+          <Link
+            to="about"
+            className={
+              "footerlink" +
+              (location.pathname == "/about" ? " activelink" : "")
+            }
+          >
+            about
+          </Link>
+          <Link
+            to="me"
+            className={
+              "footerlink" + (location.pathname == "/me" ? " activelink" : "")
+            }
+          >
+            {msalConfig.currentUser.username}'s dreams
+          </Link>
+          <Link
+            to="new"
+            className={
+              "footerlink" + (location.pathname == "/new" ? " activelink" : "")
+            }
+          >
+            new dream
+          </Link>
+          <Link
+            to="feed"
+            className={
+              "footerlink" + (location.pathname == "/feed" ? " activelink" : "")
+            }
+          >
+            feed
+          </Link>
+          <a
+            className="footerlink"
+            onClick={(_) =>
+              instance.logoutRedirect({ postLogoutRedirectUri: "/" })
+            } // let user pick their own logout redirect? lmao
+          >
+            log out
+          </a>
+        </nav>
+      ) : (
+        <>
+          <button onClick={(_) => console.log(localStorage)}>config</button>
+        </>
+      )}
+    </>
   );
 };
 
