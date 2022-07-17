@@ -9,7 +9,7 @@
 /* main body styling */
 body {
   background-color: black;
-  padding-bottom: 25px;
+  padding-bottom: 50px;
   text-align: center;
   color: lightgray;
   font-family: VCR;
@@ -74,7 +74,7 @@ li {
 #headernav::after{
   position: absolute;
   color: #9892b3;
-  padding-left: 5px;
+  padding: 5px;
   font-size: 15px;
   content:"alpha"
 }

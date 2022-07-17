@@ -429,13 +429,16 @@ const DreamFeed = ({ instance, accounts }) => {
         <button onClick={(_) => populateDreamFeed()}>refresh feed</button>
       </div>
       <div className="dreamfeed">
-        {!dreamList ? (
+      {!dreamList ? (
           <></>
         ) : (
           dreamList.map((dreamObject) => (
             <div key={dreamObject.rowKey} className="dreamobject">
-              <h5>{dreamObject.dreamtitle}</h5>
+              <h4>{dreamObject.mood}</h4>
+              <h5>{dreamObject.dreamtitle} </h5>
+              <h5>{dreamObject.user} </h5>
               <p>{dreamObject.location}</p>
+              <p>{dreamObject.dreamcontent}</p>
               <p>{dreamObject.rowkey}</p>
               <p>{dreamObject.timestamp}</p>
             </div>
@@ -446,7 +449,7 @@ const DreamFeed = ({ instance, accounts }) => {
   );
 };
 const DreamSubmitForm = ({ instance, accounts }) => {
-  let [formData, setFormData] = useState({ location: msalConfig.currentUser.region, mood: "🤮" });
+  let [formData, setFormData] = useState({ location: msalConfig.currentUser.region, mood: "🤮", user: msalConfig.currentUser.username });
   let submitDream = async (event) => {
     event.preventDefault();
     console.log("submitting dream");
@@ -611,7 +614,7 @@ const PageNotFound = (_) => {
 const HeaderNav = ({ instance, accounts }) => {
   let location = useLocation();
   return (
-    <h1>
+    <h1 id="headernav">
       <Link to="/" className={location.pathname == "/" ? "activelogo" : ""}>
         DR3AM.SPACE
       </Link>
