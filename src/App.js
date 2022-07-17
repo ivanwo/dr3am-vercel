@@ -187,10 +187,7 @@ const PrivateLandingPage = ({ instance, accounts }) => {
               if (nextResponse.signupcompleted)
                 msalConfig.currentUser = nextResponse;
               setCurrentUser(nextResponse);
-              localStorage.setItem(
-                "currentUser",
-                JSON.stringify(nextResponse)
-              );
+              localStorage.setItem("currentUser", JSON.stringify(nextResponse));
             });
         });
     // if it expires, take them back out and give them a notification about that
@@ -238,13 +235,10 @@ const PrivateLandingPage = ({ instance, accounts }) => {
         })
           .then((response) => response.json())
           .then((nextResponse) => {
-            if (nextResponse.signupcompleted){
+            if (nextResponse.signupcompleted) {
               msalConfig.currentUser = nextResponse;
-            setCurrentUser(nextResponse);
-            localStorage.setItem(
-              "currentUser",
-              JSON.stringify(nextResponse)
-            );
+              setCurrentUser(nextResponse);
+              localStorage.setItem("currentUser", JSON.stringify(nextResponse));
             }
           });
       });
@@ -482,24 +476,92 @@ const DreamSubmitForm = ({ instance, accounts }) => {
       });
   };
   let updateFormData = (event) => {
+    console.log(`${event.target.id} : ${event.target.value}`);
     let newFormData = { ...formData };
-    newFormData[event.target.id] = event.target.value;
-    setFormData({ ...newFormData });
+    if (event.target.type == "checkbox")
+      newFormData[event.target.id] = event.target.checked;
+    else newFormData[event.target.id] = event.target.value;
+    setFormData(newFormData);
   };
   let validateDream = (_) => {
     //
     // TODO: add route to api to determine timestamp of last dream submitted by user
-    // edit: actually, we can just prevent the submit eve
+    // edit: actually, we can just prevent the submit event on the back end and account for that behavior here
   };
-  return (
-    <div className="dreamsubmitform">
-      <h3>dream submit form</h3>
-      <form onSubmit={submitDream}>
-        <input onInput={updateFormData} id="dreamtitle"></input>
-        <button>submit</button>
-      </form>
-    </div>
-  );
+
+  return(
+  <div className="dreamsubmitpage">
+    <h3>dream submit form</h3>
+    <button onClick={(_) => console.log(formData)}>form data</button>
+    <form onSubmit={submitDream} id="dreamsubmitform">
+      <label>
+        dream took place in {msalConfig.currentUser.region}?{" "}
+        <input
+          type="checkbox"
+          id="local"
+          defaultChecked={true}
+          onInput={updateFormData}
+        ></input>
+      </label>
+      <div id="moodselector">
+        <label>dream mood</label>
+        <ul id="moodselectorlist">
+          <li
+            onClick={(_) => setFormData({ ...formData, mood: "🤮" })}
+            className={
+              "moodchoice" + (formData.mood == "🤮" ? " activemood" : "")
+            }
+          >
+            🤮
+          </li>
+          <li
+            onClick={(_) => setFormData({ ...formData, mood: "💀" })}
+            className={
+              "moodchoice" + (formData.mood == "💀" ? " activemood" : "")
+            }
+          >
+            💀
+          </li>
+          <li
+            onClick={(_) => setFormData({ ...formData, mood: "🥰" })}
+            className={
+              "moodchoice" + (formData.mood == "🥰" ? " activemood" : "")
+            }
+          >
+            🥰
+          </li>
+          <li
+            onClick={(_) => setFormData({ ...formData, mood: "😭" })}
+            className={
+              "moodchoice" + (formData.mood == "😭" ? " activemood" : "")
+            }
+          >
+            😭
+          </li>
+          <li
+            onClick={(_) => setFormData({ ...formData, mood: "🍆" })}
+            className={
+              "moodchoice" + (formData.mood == "🍆" ? " activemood" : "")
+            }
+          >
+            🍆
+          </li>
+          <li
+            onClick={(_) => setFormData({ ...formData, mood: "🗿" })}
+            className={
+              "moodchoice" + (formData.mood == "🗿" ? " activemood" : "")
+            }
+          >
+            🗿
+          </li>
+        </ul>
+      </div>
+      <label>title</label>
+      <input onInput={updateFormData} id="dreamtitle"></input>
+      <label>content</label>
+      <textarea onInput={updateFormData} id="dreamcontent"></textarea>
+    </form>
+  </div>);
 };
 
 const PublicLandingPage = ({ instance, accounts }) => {
