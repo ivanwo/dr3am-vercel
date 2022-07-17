@@ -172,6 +172,7 @@ const PrivateLandingPage = ({ instance, accounts }) => {
           console.log(response);
           tempToken = response.idToken;
           msalConfig.idToken = response.idToken;
+          localStorage.setItem("idToken", response.idToken);
           setToken(response.idToken);
         })
         .then((nextResponse) => {
@@ -186,6 +187,10 @@ const PrivateLandingPage = ({ instance, accounts }) => {
               if (nextResponse.signupcompleted)
                 msalConfig.currentUser = nextResponse;
               setCurrentUser(nextResponse);
+              localStorage.setItem(
+                "currentUser",
+                JSON.stringify(nextResponse)
+              );
             });
         });
     // if it expires, take them back out and give them a notification about that
@@ -233,9 +238,14 @@ const PrivateLandingPage = ({ instance, accounts }) => {
         })
           .then((response) => response.json())
           .then((nextResponse) => {
-            if (nextResponse.signupcompleted)
+            if (nextResponse.signupcompleted){
               msalConfig.currentUser = nextResponse;
             setCurrentUser(nextResponse);
+            localStorage.setItem(
+              "currentUser",
+              JSON.stringify(nextResponse)
+            );
+            }
           });
       });
   };
