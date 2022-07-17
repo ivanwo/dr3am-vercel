@@ -187,10 +187,7 @@ const PrivateLandingPage = ({ instance, accounts }) => {
               if (nextResponse.signupcompleted)
                 msalConfig.currentUser = nextResponse;
               setCurrentUser(nextResponse);
-              localStorage.setItem(
-                "currentUser",
-                JSON.stringify(nextResponse)
-              );
+              localStorage.setItem("currentUser", JSON.stringify(nextResponse));
             });
         });
     // if it expires, take them back out and give them a notification about that
@@ -238,13 +235,10 @@ const PrivateLandingPage = ({ instance, accounts }) => {
         })
           .then((response) => response.json())
           .then((nextResponse) => {
-            if (nextResponse.signupcompleted){
+            if (nextResponse.signupcompleted) {
               msalConfig.currentUser = nextResponse;
-            setCurrentUser(nextResponse);
-            localStorage.setItem(
-              "currentUser",
-              JSON.stringify(nextResponse)
-            );
+              setCurrentUser(nextResponse);
+              localStorage.setItem("currentUser", JSON.stringify(nextResponse));
             }
           });
       });
@@ -317,7 +311,6 @@ const PrivateLandingPage = ({ instance, accounts }) => {
                 <li>patching schedule</li>
                 <li>optimizations</li>
               </ul>
-              <button onClick={(_) => console.log(msalConfig)}>config</button>
             </div>
             <FooterNav instance={instance} accounts={accounts}></FooterNav>
           </>
@@ -328,9 +321,6 @@ const PrivateLandingPage = ({ instance, accounts }) => {
               we just need a couple more factoids before we can set your
               unconscious free
             </p>
-            {/* <button onClick={(_) => console.log(token)}>me token</button>
-            <button onClick={(_) => console.log(accounts[0])}>who me</button>
-            <button onClick={(_) => console.log(formData)}>form data</button> */}
             <form onSubmit={requestAccountCreation} id="accountform">
               <label>
                 username:{" "}
@@ -435,13 +425,16 @@ const DreamFeed = ({ instance, accounts }) => {
         <button onClick={(_) => populateDreamFeed()}>refresh feed</button>
       </div>
       <div className="dreamfeed">
-        {!dreamList ? (
+      {!dreamList ? (
           <></>
         ) : (
           dreamList.map((dreamObject) => (
             <div key={dreamObject.rowKey} className="dreamobject">
-              <h5>{dreamObject.dreamtitle}</h5>
+              <h4>{dreamObject.mood}</h4>
+              <h5>{dreamObject.dreamtitle} </h5>
+              <h5>{dreamObject.user} </h5>
               <p>{dreamObject.location}</p>
+              <p>{dreamObject.dreamcontent}</p>
               <p>{dreamObject.rowkey}</p>
               <p>{dreamObject.timestamp}</p>
             </div>
@@ -452,7 +445,7 @@ const DreamFeed = ({ instance, accounts }) => {
   );
 };
 const DreamSubmitForm = ({ instance, accounts }) => {
-  let [formData, setFormData] = useState({ location: "undefined" });
+  let [formData, setFormData] = useState({ location: msalConfig.currentUser.region, mood: "🤮", user: msalConfig.currentUser.username });
   let submitDream = async (event) => {
     event.preventDefault();
     console.log("submitting dream");
@@ -482,24 +475,92 @@ const DreamSubmitForm = ({ instance, accounts }) => {
       });
   };
   let updateFormData = (event) => {
+    console.log(`${event.target.id} : ${event.target.value}`);
     let newFormData = { ...formData };
-    newFormData[event.target.id] = event.target.value;
-    setFormData({ ...newFormData });
+    if (event.target.type == "checkbox")
+      newFormData[event.target.id] = event.target.checked;
+    else newFormData[event.target.id] = event.target.value;
+    setFormData(newFormData);
   };
   let validateDream = (_) => {
     //
     // TODO: add route to api to determine timestamp of last dream submitted by user
-    // edit: actually, we can just prevent the submit eve
+    // edit: actually, we can just prevent the submit event on the back end and account for that behavior here
   };
-  return (
-    <div className="dreamsubmitform">
-      <h3>dream submit form</h3>
-      <form onSubmit={submitDream}>
-        <input onInput={updateFormData} id="dreamtitle"></input>
-        <button>submit</button>
-      </form>
-    </div>
-  );
+
+  return(
+  <div className="dreamsubmitpage">
+    <h3>dream submit form</h3>
+    <form onSubmit={submitDream} id="dreamsubmitform">
+      <label>
+        dream took place in {msalConfig.currentUser.region}?{" "}
+        <input
+          type="checkbox"
+          id="local"
+          defaultChecked={true}
+          onInput={updateFormData}
+        ></input>
+      </label>
+      <div id="moodselector">
+        <label>dream mood</label>
+        <ul id="moodselectorlist">
+          <li
+            onClick={(_) => setFormData({ ...formData, mood: "🤮" })}
+            className={
+              "moodchoice" + (formData.mood == "🤮" ? " activemood" : "")
+            }
+          >
+            🤮
+          </li>
+          <li
+            onClick={(_) => setFormData({ ...formData, mood: "💀" })}
+            className={
+              "moodchoice" + (formData.mood == "💀" ? " activemood" : "")
+            }
+          >
+            💀
+          </li>
+          <li
+            onClick={(_) => setFormData({ ...formData, mood: "🥰" })}
+            className={
+              "moodchoice" + (formData.mood == "🥰" ? " activemood" : "")
+            }
+          >
+            🥰
+          </li>
+          <li
+            onClick={(_) => setFormData({ ...formData, mood: "😭" })}
+            className={
+              "moodchoice" + (formData.mood == "😭" ? " activemood" : "")
+            }
+          >
+            😭
+          </li>
+          <li
+            onClick={(_) => setFormData({ ...formData, mood: "🍆" })}
+            className={
+              "moodchoice" + (formData.mood == "🍆" ? " activemood" : "")
+            }
+          >
+            🍆
+          </li>
+          <li
+            onClick={(_) => setFormData({ ...formData, mood: "🗿" })}
+            className={
+              "moodchoice" + (formData.mood == "🗿" ? " activemood" : "")
+            }
+          >
+            🗿
+          </li>
+        </ul>
+      </div>
+      <label>title</label>
+      <input onInput={updateFormData} id="dreamtitle"></input>
+      <label>content</label>
+      <textarea onInput={updateFormData} id="dreamcontent"></textarea>
+      <button type="submit">submit dream</button>
+    </form>
+  </div>);
 };
 
 const PublicLandingPage = ({ instance, accounts }) => {
@@ -548,7 +609,7 @@ const PageNotFound = (_) => {
 const HeaderNav = ({ instance, accounts }) => {
   let location = useLocation();
   return (
-    <h1>
+    <h1 id="headernav">
       <Link to="/" className={location.pathname == "/" ? "activelogo" : ""}>
         DR3AM.SPACE
       </Link>
@@ -606,9 +667,7 @@ const FooterNav = ({ instance, accounts }) => {
           </a>
         </nav>
       ) : (
-        <>
-          <button onClick={(_) => console.log(localStorage)}>config</button>
-        </>
+        <></>
       )}
     </>
   );
