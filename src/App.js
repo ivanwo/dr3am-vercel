@@ -399,13 +399,6 @@ const DreamPage = ({ instance, accounts }) => {
   let [dreamContent, setDreamContent] = useState({});
 
   useEffect((_) => {
-    // get individual dream content
-    // let submitResult = fetch(`${apiUri}/dream/${dreamId}`, {
-    //   method: "GET",
-    //   headers: {
-    //     Authorization: `bearer ${msalConfig.idToken}`,
-    //   },
-    // })
     instance
       .acquireTokenSilent({
         // determine correct scope and parameterize from msalConfig
@@ -426,8 +419,10 @@ const DreamPage = ({ instance, accounts }) => {
           });
       });
   }, []);
+
   return (
     <div>
+      <h1><Link to="/feed">back to feed</Link></h1>
       <h1>individual dream page</h1>
       {dreamContent.rowKey == null ? (
         <p>loading...</p>
@@ -500,7 +495,7 @@ const DreamFeed = ({ instance, accounts }) => {
       </div>
       <div className="dreamfeed">
         {dreamList.length == 0 ? (
-          <>loading...</>
+          <p>loading...</p>
         ) : (
           dreamList.map((dreamObject) => (
             <div key={dreamObject.rowKey} className="dreamobject">
@@ -528,6 +523,7 @@ const DreamFeed = ({ instance, accounts }) => {
     </div>
   );
 };
+
 const DreamSubmitForm = ({ instance, accounts }) => {
   let [formData, setFormData] = useState({
     location: msalConfig.currentUser.region,
@@ -679,15 +675,76 @@ const PublicLandingPage = ({ instance, accounts }) => {
 };
 
 const UserPage = ({ instance, accounts }) => {
+  const [usersDreams, setUsersDreams] = useState([]);
+
+  useEffect(_ => {
+    instance
+    .acquireTokenSilent({
+      // determine correct scope and parameterize from msalConfig
+      scopes: ["https://storage.azure.com/user_impersonation"],
+      account: accounts[0],
+    })
+    .then((response) => {
+      let bearerHeader = `bearer ${response.idToken}`;
+      //   TODO: edit parameters of url to specify which subset of dreams to load
+      let submitResult = fetch(`${apiUri}/dreams/${msalConfig.currentUser.username}`, {
+        // let fetchResult = fetch("http://localhost:3000/dreams", {
+        method: "GET",
+        headers: {
+          Authorization: bearerHeader,
+        },
+      })
+        .then((response) => response.json())
+        .then((nextResponse) => setUsersDreams(nextResponse.dreams));
+    });
+  }, []);
+
   return (
-    <>
+    <div>
       <h3>about {msalConfig.currentUser.username}</h3>
-      {Object.keys(msalConfig.currentUser).map((key) => (
-        <p key={key}>
-          {key} : {msalConfig.currentUser[key]}
-        </p>
-      ))}
-    </>
+      <table className="datatable">
+        <thead>
+          <tr>
+            <th>key</th>
+            <th>value</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.keys(msalConfig.currentUser).map((key) => (
+            <tr key={key}>
+              <td>{key}</td>
+              <td>{`${msalConfig.currentUser[key]}`}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+      <h3>{msalConfig.currentUser.username}'s dreams</h3>
+      {usersDreams.length == 0 ? (
+          <p>loading...</p>
+        ) : (
+          usersDreams.map((dreamObject) => (
+            <div key={dreamObject.rowKey} className="dreamobject">
+              <div className="bottomborder">
+                <div className="dreamheader">
+                  <p>{dreamObject.user} </p>
+                  <p>{dreamObject.location}</p>
+                  <Link to={"../dream/" + dreamObject.rowKey}>
+                    {dreamObject.rowKey}
+                  </Link>
+                </div>
+              </div>
+              <div className="bottomborder">
+                <div className="dreamheader">
+                  <h4 className="dreammood">{dreamObject.mood}</h4>
+                  <h3 className="dreamtitle">{dreamObject.dreamtitle} </h3>
+                </div>
+              </div>
+              <p>{dreamObject.dreamcontent}</p>
+              <p>{dreamObject.timestamp}</p>
+            </div>
+          ))
+        )}
+    </div>
   );
 };
 
