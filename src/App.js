@@ -6,10 +6,12 @@ import {
 } from "@azure/msal-react";
 import {
   BrowserRouter,
+  HashRouter,
   Routes,
   Route,
   Link,
   useLocation,
+  Outlet,
 } from "react-router-dom";
 import { loginRequest, msalConfig } from "../settings/msalConfig";
 
@@ -115,7 +117,11 @@ const App = () => {
               <DreamSubmitForm instance={instance} accounts={accounts} />
             }
           ></Route>
-          <Route path="dream/*" element={<DreamPage />}></Route>
+          <Route
+            exact
+            path="dream/*"
+            element={<DreamPage instance={instance} accounts={accounts} />}
+          ></Route>
           <Route path="*" element={<PageNotFound />}></Route>
         </Routes>
         <FooterNav instance={instance} accounts={accounts}></FooterNav>
@@ -386,14 +392,69 @@ const PrivateLandingPage = ({ instance, accounts }) => {
       </>
     );
 };
-const DreamPage = ({ dreamId }) => {
+const DreamPage = ({ instance, accounts }) => {
+  let [dreamId, setDreamId] = useState(
+    window.location.pathname.replace("/dream/", "")
+  );
+  let [dreamContent, setDreamContent] = useState({});
+
+  useEffect((_) => {
+    // get individual dream content
+    // let submitResult = fetch(`${apiUri}/dream/${dreamId}`, {
+    //   method: "GET",
+    //   headers: {
+    //     Authorization: `bearer ${msalConfig.idToken}`,
+    //   },
+    // })
+    instance
+      .acquireTokenSilent({
+        // determine correct scope and parameterize from msalConfig
+        scopes: ["https://storage.azure.com/user_impersonation"],
+        account: accounts[0],
+      })
+      .then((response) => {
+        let bearerHeader = `bearer ${response.idToken}`;
+        let userData = fetch(`${apiUri}/dream/${dreamId}`, {
+          method: "GET",
+          headers: {
+            Authorization: bearerHeader,
+          },
+        })
+          .then((response) => response.json())
+          .then((nextResponse) => {
+            setDreamContent(nextResponse);
+          });
+      });
+  }, []);
   return (
     <div>
       <h1>individual dream page</h1>
-      <h2>{window.location.pathname}</h2>
+      {dreamContent.rowKey == null ? (
+        <p>loading...</p>
+      ) : (
+        <div>
+          <table className="datatable">
+            <thead>
+              <tr>
+                <th>key</th>
+                <th>value</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.keys(dreamContent).map((key) => (
+                <tr key={key}>
+                  <td>{key}</td>
+                  <td>{dreamContent[key]}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
     </div>
   );
 };
+
 const DreamFeed = ({ instance, accounts }) => {
   let [dreamList, setDreamList] = useState([]);
 
@@ -438,8 +499,8 @@ const DreamFeed = ({ instance, accounts }) => {
         <button onClick={(_) => populateDreamFeed()}>refresh feed</button>
       </div>
       <div className="dreamfeed">
-        {!dreamList ? (
-          <></>
+        {dreamList.length == 0 ? (
+          <>loading...</>
         ) : (
           dreamList.map((dreamObject) => (
             <div key={dreamObject.rowKey} className="dreamobject">
