@@ -422,8 +422,8 @@ const DreamPage = ({ instance, accounts }) => {
 
   return (
     <div>
-      <h1><Link to="/feed">back to feed</Link></h1>
-      <h1>individual dream page</h1>
+      <Link to="/feed"><h4><b className="bigbold">⬅</b> back to feed</h4></Link>
+      {/* <h1>individual dream page</h1> */}
       {dreamContent.rowKey == null ? (
         <p>loading...</p>
       ) : (
