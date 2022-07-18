@@ -26,6 +26,9 @@ textarea {
 li {
   list-style-type: none;
 }
+tr{
+  border-bottom: 1px solid white;
+}
 /* individual page styling */
 
 /* individual component styling */
@@ -117,6 +120,10 @@ li {
 }
 #headernav:hover {
   transform: scale(1.05);
+}
+.datatable{
+  margin: auto;
+  border: 1px solid white;
 }
 /* FOOTER */
 #navfooter {

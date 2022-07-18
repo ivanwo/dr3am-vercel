@@ -32,29 +32,22 @@ module.exports={
      */
     target: "web",
     devServer: {
-        /** "port" 
-         * port of dev server
-        */
         port: "9500",
-        /** "static" 
-         * This property tells Webpack what static file it should serve
-        */
         static: ["./public"],
-        /** "open" 
-         * opens the browser after server is successfully started
-        */
         open: true,
         /** "hot"
          * enabling and disabling HMR. takes "true", "false" and "only". 
          * "only" is used if enable Hot Module Replacement without page 
          * refresh as a fallback in case of build failures
          */
-        hot: true ,
+        hot: true,
         /** "liveReload"
          * disable live reload on the browser. "hot" must be set to false for this to work
         */
         liveReload: true,
-        historyApiFallback: true,
+        historyApiFallback: {
+            index: '/index.html'
+        },
     },
     resolve: {
         /** "extensions" 
@@ -62,6 +55,7 @@ module.exports={
          * resolve the one with the extension listed first in the array and skip the rest. 
          * This is what enables users to leave off the extension when importing
          */
+        alias: { mydir: path.resolve(__dirname, "/")},
         extensions: ['.js','.jsx','.json'] 
     },
     performance: {
