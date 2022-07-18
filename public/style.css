@@ -32,6 +32,14 @@ tr{
 /* individual page styling */
 
 /* individual component styling */
+.loginbutton {
+  background-color: black;
+  border-radius: 8px;
+  font-size: 15px;
+  cursor: pointer;
+  color: white;
+  padding: 5px;
+}
 .dreamsortselector {
   border: 1px solid white;
   display: flex;

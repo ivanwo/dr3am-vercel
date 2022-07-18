@@ -422,7 +422,11 @@ const DreamPage = ({ instance, accounts }) => {
 
   return (
     <div>
-      <Link to="/feed"><h4><b className="bigbold">⬅</b> back to feed</h4></Link>
+      <Link to="/feed">
+        <h4>
+          <b className="bigbold">⬅</b> back to feed
+        </h4>
+      </Link>
       {/* <h1>individual dream page</h1> */}
       {dreamContent.rowKey == null ? (
         <p>loading...</p>
@@ -664,12 +668,18 @@ const PublicLandingPage = ({ instance, accounts }) => {
         <h3>random dream</h3>
         <p>think about how to implement this without opening the api...</p>
       </div>
-      <a
-        onClick={(_) => instance.loginPopup(loginRequest)}
-        className="footerlink"
+      <button
+        onClick={(_) => {
+          /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+            navigator.userAgent
+          )
+            ? instance.loginRedirect(loginRequest)
+            : instance.loginPopup(loginRequest);
+        }}
+        className="loginbutton"
       >
         log in/ sign up
-      </a>
+      </button>
     </div>
   );
 };
@@ -677,26 +687,29 @@ const PublicLandingPage = ({ instance, accounts }) => {
 const UserPage = ({ instance, accounts }) => {
   const [usersDreams, setUsersDreams] = useState([]);
 
-  useEffect(_ => {
+  useEffect((_) => {
     instance
-    .acquireTokenSilent({
-      // determine correct scope and parameterize from msalConfig
-      scopes: ["https://storage.azure.com/user_impersonation"],
-      account: accounts[0],
-    })
-    .then((response) => {
-      let bearerHeader = `bearer ${response.idToken}`;
-      //   TODO: edit parameters of url to specify which subset of dreams to load
-      let submitResult = fetch(`${apiUri}/dreams/${msalConfig.currentUser.username}`, {
-        // let fetchResult = fetch("http://localhost:3000/dreams", {
-        method: "GET",
-        headers: {
-          Authorization: bearerHeader,
-        },
+      .acquireTokenSilent({
+        // determine correct scope and parameterize from msalConfig
+        scopes: ["https://storage.azure.com/user_impersonation"],
+        account: accounts[0],
       })
-        .then((response) => response.json())
-        .then((nextResponse) => setUsersDreams(nextResponse.dreams));
-    });
+      .then((response) => {
+        let bearerHeader = `bearer ${response.idToken}`;
+        //   TODO: edit parameters of url to specify which subset of dreams to load
+        let submitResult = fetch(
+          `${apiUri}/dreams/${msalConfig.currentUser.username}`,
+          {
+            // let fetchResult = fetch("http://localhost:3000/dreams", {
+            method: "GET",
+            headers: {
+              Authorization: bearerHeader,
+            },
+          }
+        )
+          .then((response) => response.json())
+          .then((nextResponse) => setUsersDreams(nextResponse.dreams));
+      });
   }, []);
 
   return (
@@ -720,30 +733,30 @@ const UserPage = ({ instance, accounts }) => {
       </table>
       <h3>{msalConfig.currentUser.username}'s dreams</h3>
       {usersDreams.length == 0 ? (
-          <p>loading...</p>
-        ) : (
-          usersDreams.map((dreamObject) => (
-            <div key={dreamObject.rowKey} className="dreamobject">
-              <div className="bottomborder">
-                <div className="dreamheader">
-                  <p>{dreamObject.user} </p>
-                  <p>{dreamObject.location}</p>
-                  <Link to={"../dream/" + dreamObject.rowKey}>
-                    {dreamObject.rowKey}
-                  </Link>
-                </div>
+        <p>loading...</p>
+      ) : (
+        usersDreams.map((dreamObject) => (
+          <div key={dreamObject.rowKey} className="dreamobject">
+            <div className="bottomborder">
+              <div className="dreamheader">
+                <p>{dreamObject.user} </p>
+                <p>{dreamObject.location}</p>
+                <Link to={"../dream/" + dreamObject.rowKey}>
+                  {dreamObject.rowKey}
+                </Link>
               </div>
-              <div className="bottomborder">
-                <div className="dreamheader">
-                  <h4 className="dreammood">{dreamObject.mood}</h4>
-                  <h3 className="dreamtitle">{dreamObject.dreamtitle} </h3>
-                </div>
-              </div>
-              <p>{dreamObject.dreamcontent}</p>
-              <p>{dreamObject.timestamp}</p>
             </div>
-          ))
-        )}
+            <div className="bottomborder">
+              <div className="dreamheader">
+                <h4 className="dreammood">{dreamObject.mood}</h4>
+                <h3 className="dreamtitle">{dreamObject.dreamtitle} </h3>
+              </div>
+            </div>
+            <p>{dreamObject.dreamcontent}</p>
+            <p>{dreamObject.timestamp}</p>
+          </div>
+        ))
+      )}
     </div>
   );
 };
