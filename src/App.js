@@ -12,6 +12,7 @@ import {
   Link,
   useLocation,
   Outlet,
+  useNavigate,
 } from "react-router-dom";
 import { loginRequest, msalConfig } from "../settings/msalConfig";
 
@@ -33,6 +34,7 @@ switch (env) {
 }
 
 const App = () => {
+  const [modalVisible, setModalVisible] = useState(false);
   const { instance } = useMsal();
   const { accounts } = useMsal();
 
@@ -83,14 +85,19 @@ const App = () => {
   // Inside the Router, we have two paths beneath the header
   // Routes for when the user is authenticated, and Routes for them they're not.
   return (
-    <BrowserRouter>
+    // <BrowserRouter>
+    <HashRouter>
       <HeaderNav instance={instance} accounts={accounts} />
       <AuthenticatedTemplate>
         <Routes>
           <Route
             path="/"
             element={
-              <PrivateLandingPage instance={instance} accounts={accounts} />
+              <PrivateLandingPage
+                instance={instance}
+                accounts={accounts}
+                setModalVisible={setModalVisible}
+              />
             }
           ></Route>
           <Route
@@ -120,11 +127,20 @@ const App = () => {
           <Route
             exact
             path="dream/*"
-            element={<DreamPage instance={instance} accounts={accounts} />}
+            element={
+              <>
+                <DreamPage instance={instance} accounts={accounts} />
+                <Outlet />
+              </>
+            }
           ></Route>
           <Route path="*" element={<PageNotFound />}></Route>
         </Routes>
-        <FooterNav instance={instance} accounts={accounts}></FooterNav>
+        <FooterNav
+          instance={instance}
+          accounts={accounts}
+          setModalVisible={setModalVisible}
+        ></FooterNav>
       </AuthenticatedTemplate>
       <UnauthenticatedTemplate>
         <Routes>
@@ -137,7 +153,9 @@ const App = () => {
           <Route path="*" element={<PageNotFound />}></Route>
         </Routes>
       </UnauthenticatedTemplate>
-    </BrowserRouter>
+      {/* </BrowserRouter> */}
+      <Modal modalVisible={modalVisible} setModalVisible={setModalVisible} />
+    </HashRouter>
   );
 };
 
@@ -152,7 +170,7 @@ const PrivateAboutPage = ({ instance, accounts }) => {
   );
 };
 
-const PrivateLandingPage = ({ instance, accounts }) => {
+const PrivateLandingPage = ({ instance, accounts, setModalVisible }) => {
   let [token, setToken] = useState({});
   let [usernameIsFree, setUsernameIsFree] = useState(false);
   let [completeUser, setCompleteUser] = useState(false);
@@ -209,17 +227,26 @@ const PrivateLandingPage = ({ instance, accounts }) => {
     event.preventDefault();
     // if username isn't free don't bother submitting form to back end
     if (!usernameIsFree) {
-      alert("please choose free and valid username");
+      // alert("please choose free and valid username");
+      msalConfig.modal.title = "please choose a valid and free username";
+      msalConfig.modal.message = "";
+      setModalVisible(true);
       return;
     }
     // check region
     // check if they agreed to the TOS
     if (!formData.termsofservice) {
-      alert("you must swear the oath to use the service");
+      // alert("you must swear the oath to use the service");
+      msalConfig.modal.title = "you must swear the oath to use the service";
+      msalConfig.modal.message = "";
+      setModalVisible(true);
       return;
     }
     if (!formData.adultuser) {
-      alert("you cannot be a child here");
+      // alert("you cannot be a child here");
+      msalConfig.modal.title = "you cannot be a child here";
+      msalConfig.modal.message = "";
+      setModalVisible(true);
       return;
     }
     // submit to back end for approval
@@ -259,11 +286,17 @@ const PrivateLandingPage = ({ instance, accounts }) => {
     let problem = false;
     if (formData.username.length < 4 || formData.username.length > 10) {
       // TODO: build out alert utility class
-      alert("username must be 4-10 characters");
+      // alert("username must be 4-10 characters");
+      msalConfig.modal.title = "username must be 4-10 characters";
+      msalConfig.modal.message = "";
+      setModalVisible(true);
       problem = true;
     }
     if (/[^a-zA-Z0-9]/.test(formData.username)) {
-      alert("username cannot contain special characters");
+      // alert("username cannot contain special characters");
+      msalConfig.modal.title = "username cannot contain special characters";
+      msalConfig.modal.message = "";
+      setModalVisible(true);
       problem = true;
     }
     // don't waste time checking a bad username with the back end
@@ -279,17 +312,24 @@ const PrivateLandingPage = ({ instance, accounts }) => {
         .then((nextResponse) => {
           if (nextResponse.status) {
             setUsernameIsFree(true);
-            alert("username is valid and available!");
+
+            msalConfig.modal.title = "username is valid and available!";
+            msalConfig.modal.message = "";
+            setModalVisible(true);
+            // alert("username is valid and available!");
           } else {
             setUsernameIsFree(false);
-            alert("username is already taken");
+            msalConfig.modal.title = "username is already taken";
+            msalConfig.modal.message = "";
+            setModalVisible(true);
+            // alert("username is already taken");
           }
         });
     } else setUsernameIsFree(false);
   };
 
   let updateFormData = (event) => {
-    console.log(`${event.target.id} : ${event.target.value}`);
+    // console.log(`${event.target.id} : ${event.target.value}`);
     // if it's the username check if it's taken
     if (event.target.id == "username") {
       // TODO: auto check if username is taken
@@ -394,7 +434,10 @@ const PrivateLandingPage = ({ instance, accounts }) => {
 };
 const DreamPage = ({ instance, accounts }) => {
   let [dreamId, setDreamId] = useState(
-    window.location.pathname.replace("/dream/", "")
+    // for browserrouter
+    // window.location.pathname.replace("/dream/", "")
+    // for hashrouter
+    window.location.href.split("/")[window.location.href.split("/").length - 1]
   );
   let [dreamContent, setDreamContent] = useState({});
 
@@ -529,6 +572,7 @@ const DreamFeed = ({ instance, accounts }) => {
 };
 
 const DreamSubmitForm = ({ instance, accounts }) => {
+  let navigate = useNavigate();
   let [formData, setFormData] = useState({
     location: msalConfig.currentUser.region,
     mood: "🤮",
@@ -546,7 +590,6 @@ const DreamSubmitForm = ({ instance, accounts }) => {
       .then((response) => {
         let bearerHeader = `bearer ${response.idToken}`;
         let submitResult = fetch(`${apiUri}/dream`, {
-          // let submitResult = fetch("http://localhost:3000/dream", {
           method: "POST",
           headers: {
             Authorization: bearerHeader,
@@ -555,7 +598,16 @@ const DreamSubmitForm = ({ instance, accounts }) => {
           body: JSON.stringify(formData), // change to form data
         })
           .then((res) => res.json())
-          .then((data) => console.log(data));
+          .then((data) => {
+            if (data.status == "created") {
+              navigate(`../dream/${data.dreamId}`);
+            } else {
+              // dream creation failed
+              alert(
+                "dream submit issue, please adjust data or contact support"
+              );
+            }
+          });
         // TODO: error handling around dream submit result
         //      201 -> created successfully, redirect to feed?
         //      500 -> server error, try again later
@@ -685,7 +737,7 @@ const PublicLandingPage = ({ instance, accounts }) => {
 };
 
 const UserPage = ({ instance, accounts }) => {
-  const [usersDreams, setUsersDreams] = useState([]);
+  const [usersDreams, setUsersDreams] = useState();
 
   useEffect((_) => {
     instance
@@ -713,7 +765,7 @@ const UserPage = ({ instance, accounts }) => {
   }, []);
 
   return (
-    <div>
+    <div className="userpage">
       <h3>about {msalConfig.currentUser.username}</h3>
       <table className="datatable">
         <thead>
@@ -732,30 +784,36 @@ const UserPage = ({ instance, accounts }) => {
         </tbody>
       </table>
       <h3>{msalConfig.currentUser.username}'s dreams</h3>
-      {usersDreams.length == 0 ? (
+      {usersDreams == null ? (
         <p>loading...</p>
       ) : (
-        usersDreams.map((dreamObject) => (
-          <div key={dreamObject.rowKey} className="dreamobject">
-            <div className="bottomborder">
-              <div className="dreamheader">
-                <p>{dreamObject.user} </p>
-                <p>{dreamObject.location}</p>
-                <Link to={"../dream/" + dreamObject.rowKey}>
-                  {dreamObject.rowKey}
-                </Link>
+        <>
+          {usersDreams.length == 0 ? (
+            <p>no dreams yet</p>
+          ) : (
+            usersDreams.map((dreamObject) => (
+              <div key={dreamObject.rowKey} className="dreamobject">
+                <div className="bottomborder">
+                  <div className="dreamheader">
+                    <Link to={"../dream/" + dreamObject.rowKey}>
+                      <p>{dreamObject.user} </p>
+                      <p>{dreamObject.location}</p>
+                      <p>{dreamObject.rowKey}</p>
+                    </Link>
+                  </div>
+                </div>
+                <div className="bottomborder">
+                  <div className="dreamheader">
+                    <h4 className="dreammood">{dreamObject.mood}</h4>
+                    <h3 className="dreamtitle">{dreamObject.dreamtitle} </h3>
+                  </div>
+                </div>
+                <p>{dreamObject.dreamcontent}</p>
+                <p>{dreamObject.timestamp}</p>
               </div>
-            </div>
-            <div className="bottomborder">
-              <div className="dreamheader">
-                <h4 className="dreammood">{dreamObject.mood}</h4>
-                <h3 className="dreamtitle">{dreamObject.dreamtitle} </h3>
-              </div>
-            </div>
-            <p>{dreamObject.dreamcontent}</p>
-            <p>{dreamObject.timestamp}</p>
-          </div>
-        ))
+            ))
+          )}
+        </>
       )}
     </div>
   );
@@ -763,6 +821,24 @@ const UserPage = ({ instance, accounts }) => {
 
 const PageNotFound = (_) => {
   return <h1>404 time babyyyy</h1>;
+};
+
+const Modal = ({ modalVisible, setModalVisible }) => {
+  useEffect((_) => {
+    console.log(modalVisible);
+  }, []);
+
+  return (
+    <div className={"modalbacker" + (modalVisible ? "" : " modalinvisible")}>
+      <div className={"modal" + (modalVisible ? "" : " modalinvisible")}>
+        <h1>{msalConfig.modal.title}</h1>
+        <p>{msalConfig.modal.message}</p>
+        <button onClick={(_) => setModalVisible(false)}>
+          {msalConfig.modal.confirmtext}
+        </button>
+      </div>
+    </div>
+  );
 };
 
 const HeaderNav = ({ instance, accounts }) => {
@@ -776,8 +852,13 @@ const HeaderNav = ({ instance, accounts }) => {
   );
 };
 
-const FooterNav = ({ instance, accounts }) => {
+const FooterNav = ({ instance, accounts, setModalVisible }) => {
   let location = useLocation();
+
+  let toggleModal = (_) => {
+    // msalConfig.modal.title = msalConfig.modal.title + " wef ef ";
+    setModalVisible(true);
+  };
 
   return (
     <>
@@ -824,6 +905,9 @@ const FooterNav = ({ instance, accounts }) => {
           >
             log out
           </a>
+          {/* <a className="footerlink" onClick={(_) => toggleModal()}>
+            modal
+          </a> */}
         </nav>
       ) : (
         <></>
