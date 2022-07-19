@@ -30,8 +30,35 @@ tr{
   border-bottom: 1px solid white;
 }
 /* individual page styling */
-
+.userpage{
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  /* align-items: center; */
+}
 /* individual component styling */
+.modalbacker{
+  background-color: rgba(1,1,1,0.9);
+  justify-content: center;
+  position: absolute;
+  align-items: center;
+  display: flex;
+  height: 100vh;
+  width: 100vw;
+  bottom:0;
+  right:0;
+  left:0;
+  top:0;
+}
+.modal{
+  color: black;
+  width: 500px;
+  /* height: 500px; */
+  background-color: aliceblue;
+}
+.modalinvisible{
+  display: none;
+}
 .loginbutton {
   background-color: black;
   border-radius: 8px;
@@ -133,6 +160,8 @@ tr{
   transform: scale(1.05);
 }
 .datatable{
+  align-self: start;
+  float: left;
   margin: auto;
   border: 1px solid white;
 }
@@ -197,6 +226,7 @@ tr{
   left: 0;
   top: 0;
 }
+
 /* MOBILE STYLING */
 @media screen and (max-width: 600px) {
   /* main body */
@@ -207,10 +237,14 @@ tr{
     width: 100%;
   }
   #dreamsubmitform {
-    width: 100vw;
+    max-width: 100vw;
   }
   #navfooter {
-    width: 100vw;
+   max-width: 100vw;
+  }
+  .datatable{
+    max-width: 100vw;
+    transform: scale(0.5) translateX(-25%);
   }
   /* individual page styling */
   /* individual component styling */
