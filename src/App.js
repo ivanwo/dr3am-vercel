@@ -12,6 +12,7 @@ import {
   Link,
   useLocation,
   Outlet,
+  useNavigate,
 } from "react-router-dom";
 import { loginRequest, msalConfig } from "../settings/msalConfig";
 
@@ -83,7 +84,8 @@ const App = () => {
   // Inside the Router, we have two paths beneath the header
   // Routes for when the user is authenticated, and Routes for them they're not.
   return (
-    <BrowserRouter>
+    // <BrowserRouter>
+    <HashRouter>
       <HeaderNav instance={instance} accounts={accounts} />
       <AuthenticatedTemplate>
         <Routes>
@@ -120,7 +122,7 @@ const App = () => {
           <Route
             exact
             path="dream/*"
-            element={<DreamPage instance={instance} accounts={accounts} />}
+            element={<><DreamPage instance={instance} accounts={accounts} /><Outlet /></>}
           ></Route>
           <Route path="*" element={<PageNotFound />}></Route>
         </Routes>
@@ -137,7 +139,8 @@ const App = () => {
           <Route path="*" element={<PageNotFound />}></Route>
         </Routes>
       </UnauthenticatedTemplate>
-    </BrowserRouter>
+    {/* </BrowserRouter> */}
+    </HashRouter>
   );
 };
 
@@ -394,7 +397,10 @@ const PrivateLandingPage = ({ instance, accounts }) => {
 };
 const DreamPage = ({ instance, accounts }) => {
   let [dreamId, setDreamId] = useState(
-    window.location.pathname.replace("/dream/", "")
+    // for browserrouter
+    // window.location.pathname.replace("/dream/", "")
+    // for hashrouter
+    window.location.href.split("/")[window.location.href.split("/").length-1]
   );
   let [dreamContent, setDreamContent] = useState({});
 
@@ -529,6 +535,7 @@ const DreamFeed = ({ instance, accounts }) => {
 };
 
 const DreamSubmitForm = ({ instance, accounts }) => {
+  let navigate = useNavigate();
   let [formData, setFormData] = useState({
     location: msalConfig.currentUser.region,
     mood: "🤮",
@@ -546,7 +553,6 @@ const DreamSubmitForm = ({ instance, accounts }) => {
       .then((response) => {
         let bearerHeader = `bearer ${response.idToken}`;
         let submitResult = fetch(`${apiUri}/dream`, {
-          // let submitResult = fetch("http://localhost:3000/dream", {
           method: "POST",
           headers: {
             Authorization: bearerHeader,
@@ -555,7 +561,14 @@ const DreamSubmitForm = ({ instance, accounts }) => {
           body: JSON.stringify(formData), // change to form data
         })
           .then((res) => res.json())
-          .then((data) => console.log(data));
+          .then((data) => {
+            if (data.status == "created") {
+              navigate(`../dream/${data.dreamId}`);
+            } else {
+              // dream creation failed
+              alert("dream submit issue, please adjust data or contact support");
+            }
+          });
         // TODO: error handling around dream submit result
         //      201 -> created successfully, redirect to feed?
         //      500 -> server error, try again later
@@ -739,10 +752,10 @@ const UserPage = ({ instance, accounts }) => {
           <div key={dreamObject.rowKey} className="dreamobject">
             <div className="bottomborder">
               <div className="dreamheader">
-                <p>{dreamObject.user} </p>
-                <p>{dreamObject.location}</p>
                 <Link to={"../dream/" + dreamObject.rowKey}>
-                  {dreamObject.rowKey}
+                  <p>{dreamObject.user} </p>
+                  <p>{dreamObject.location}</p>
+                  <p>{dreamObject.rowKey}</p>
                 </Link>
               </div>
             </div>

@@ -1,4 +1,5 @@
 const path = require("path");
+const webpack = require("webpack");
 
 /*We are basically telling webpack to take index.js from entry. Then check for all file extensions in resolve. 
 After that apply all the rules in module.rules and produce the output and place it in main.js in the public folder.*/
@@ -19,7 +20,8 @@ module.exports={
         /** "path"
          * the folder path of the output file 
          */
-        path: path.resolve(__dirname, "public"),
+        path: path.resolve(__dirname, "./public"),
+        // static: path.resolve(__dirname, './public'),
         /** "filename"
          * the name of the output file 
          */
@@ -33,7 +35,8 @@ module.exports={
     target: "web",
     devServer: {
         port: "9500",
-        static: ["./public"],
+        // static: ["./public"],
+        static: path.resolve(__dirname, './public'),
         open: true,
         /** "hot"
          * enabling and disabling HMR. takes "true", "false" and "only". 
@@ -45,9 +48,7 @@ module.exports={
          * disable live reload on the browser. "hot" must be set to false for this to work
         */
         liveReload: true,
-        historyApiFallback: {
-            index: '/index.html'
-        },
+        historyApiFallback: true
     },
     resolve: {
         /** "extensions" 
