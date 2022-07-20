@@ -4,6 +4,7 @@ import { LogLevel } from "@azure/msal-browser";
 // auth data still wrong, need to do more research
 //
 export const msalConfig = {
+  apiUri : "",
   idToken : "",
   currentUser: {signupcompleted:false},
   modal: { title: "alert", message: "", confirmtext: "ok"},
