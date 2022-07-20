@@ -89,11 +89,11 @@ const PrivateLandingPage = ({ instance, accounts, setModalVisible }) => {
       {
         msalConfig.modal.title = "you cannot be a child here";
         msalConfig.modal.message = "";
-        formData.adultuser = false;
+        setFormData({...formData, adultuser: false});
         setModalVisible(true);
         return;
       }
-      
+        setFormData({...formData, adultuser: true});
       // if (!formData.adultuser) {
       //   // alert("you cannot be a child here");
       //   msalConfig.modal.title = "you cannot be a child here";
@@ -273,14 +273,14 @@ const PrivateLandingPage = ({ instance, accounts, setModalVisible }) => {
                     onChange={updateFormData}
                   ></input>
                 </label>
-                <label>
+                {/* <label>
                   i am 18 years of age or older
                   <input
                     type="checkbox"
                     id="adultuser"
                     onChange={updateFormData}
                   ></input>
-                </label>
+                </label> */}
                 <button onClick={requestAccountCreation}>sign me up!</button>
                 <button
                   onClick={(_) =>
