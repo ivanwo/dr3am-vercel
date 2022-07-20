@@ -105,9 +105,10 @@ tr{
 /*  new dream stylings */
 .dreamobject {
   box-shadow: 0.5px 0.5px 3px white;
+  max-width: 650px;
   border: 1px solid white;
   border-radius: 10px;
-  margin-top: 1em;
+  margin: 1em auto;
 }
 .dreamobject * {
   /* for troubleshooting css lol */
@@ -278,10 +279,6 @@ tr{
 }
 /* REEEEALLY BIG SCREENS */
 @media screen and (min-width: 1500px) {
-  .dreamobject {
-    width: 900px;
-    margin: auto;
-  }
   #dreamsubmitform {
     max-width: 900px;
   }

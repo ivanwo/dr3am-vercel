@@ -41,45 +41,49 @@ const App = () => {
   useEffect((_) => {
     // on load, no matter what page you're on check if the user is already logged in
     // if session exists in localstorage
-    if (localStorage.idToken != null && localStorage.currentUser != null) {
-      console.log("session exists");
-      msalConfig.currentUser = JSON.parse(localStorage.currentUser);
-      msalConfig.idToken = localStorage.idToken;
-      console.log(msalConfig.currentUser);
-    } else {
-      console.log("no session");
-      // if session exists in memory (maybe not what we want? see above storage)
-      if (msalConfig.idToken == "") {
-        // let tempToken = "";
-        instance
-          .acquireTokenSilent({
-            scopes: ["https://storage.azure.com/user_impersonation"],
-            account: accounts[0],
-          })
-          .then((response) => {
-            // tempToken = response.idToken;
-            msalConfig.idToken = response.idToken;
-            localStorage.setItem("idToken", response.idToken);
-          })
-          .then((nextResponse) => {
-            let userData = fetch(`${apiUri}/user`, {
-              method: "GET",
-              headers: {
-                Authorization: `bearer ${msalConfig.idToken}`,
-              },
+    try {
+      if (localStorage.idToken != null && localStorage.currentUser != null) {
+        console.log("session exists");
+        msalConfig.currentUser = JSON.parse(localStorage.currentUser);
+        msalConfig.idToken = localStorage.idToken;
+        console.log(msalConfig.currentUser);
+      } else {
+        console.log("no session");
+        // if session exists in memory (maybe not what we want? see above storage)
+        if (msalConfig.idToken == "") {
+          // let tempToken = "";
+          instance
+            .acquireTokenSilent({
+              scopes: ["https://storage.azure.com/user_impersonation"],
+              account: accounts[0],
             })
-              .then((response) => response.json())
-              .then((nextResponse) => {
-                if (nextResponse.signupcompleted) {
-                  msalConfig.currentUser = nextResponse;
-                  localStorage.setItem(
-                    "currentUser",
-                    JSON.stringify(nextResponse)
-                  );
-                }
-              });
-          });
-      } else console.log("? ? ?");
+            .then((response) => {
+              // tempToken = response.idToken;
+              msalConfig.idToken = response.idToken;
+              localStorage.setItem("idToken", response.idToken);
+            })
+            .then((nextResponse) => {
+              let userData = fetch(`${apiUri}/user`, {
+                method: "GET",
+                headers: {
+                  Authorization: `bearer ${msalConfig.idToken}`,
+                },
+              })
+                .then((response) => response.json())
+                .then((nextResponse) => {
+                  if (nextResponse.signupcompleted) {
+                    msalConfig.currentUser = nextResponse;
+                    localStorage.setItem(
+                      "currentUser",
+                      JSON.stringify(nextResponse)
+                    );
+                  }
+                });
+            });
+        } else console.log("? ? ?");
+      }
+    } catch {
+      navigate(`../`);
     }
   }, []);
   // Inside the Router, we have two paths beneath the header
@@ -115,7 +119,7 @@ const App = () => {
           <Route
             exact
             path="me"
-            element={<UserPage instance={instance} accounts={accounts} />}
+            element={<CurrentUserPage instance={instance} accounts={accounts} />}
           ></Route>
           <Route
             exact
@@ -131,9 +135,18 @@ const App = () => {
           <Route
             exact
             path="dream/*"
+            element={<DreamPage instance={instance} accounts={accounts} />}
+          ></Route>
+          <Route
+            exact
+            path="user/*"
             element={
               <>
-                <DreamPage instance={instance} accounts={accounts} />
+                <UserViewPage
+                  instance={instance}
+                  accounts={accounts}
+                  setModalVisible={setModalVisible}
+                />
                 <Outlet />
               </>
             }
@@ -188,6 +201,8 @@ const PrivateLandingPage = ({ instance, accounts, setModalVisible }) => {
   });
   // TODO: move this up to the root app level
   useEffect((_) => {
+    if (accounts[0] == null) navigate(`../`);
+    console.log(accounts);
     // get token when the user first gets to the page
     let tempToken = "";
     if (!msalConfig.idToken == "") {
@@ -782,7 +797,56 @@ const PublicLandingPage = ({ instance, accounts }) => {
   );
 };
 
-const UserPage = ({ instance, accounts }) => {
+const UserViewPage = ({ instance, accounts }) => {
+  const [username, setUsername] = useState(
+    window.location.href.split("/")[window.location.href.split("/").length - 1]
+  );
+  const [usersDreams, setUsersDreams] = useState();
+
+  useEffect((_) => {
+    instance
+      .acquireTokenSilent({
+        // determine correct scope and parameterize from msalConfig
+        scopes: ["https://storage.azure.com/user_impersonation"],
+        account: accounts[0],
+      })
+      .then((response) => {
+        let bearerHeader = `bearer ${response.idToken}`;
+        //   TODO: edit parameters of url to specify which subset of dreams to load
+        let submitResult = fetch(`${apiUri}/dreams/${username}`, {
+          // let fetchResult = fetch("http://localhost:3000/dreams", {
+          method: "GET",
+          headers: {
+            Authorization: bearerHeader,
+          },
+        })
+          .then((response) => response.json())
+          .then((nextResponse) => setUsersDreams(nextResponse.dreams));
+      });
+  }, []);
+
+  return (
+    <div>
+      {" "}
+      <h3>{username}'s dreams</h3>
+      {usersDreams == null ? (
+        <p>loading...</p>
+      ) : (
+        <div className="dreamfeed">
+          {usersDreams.length == 0 ? (
+            <p>no dreams yet</p>
+          ) : (
+            usersDreams.map((dreamObject) => (
+              <Dream dream={dreamObject} key={dreamObject.rowKey} />
+            ))
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const CurrentUserPage = ({ instance, accounts }) => {
   const [usersDreams, setUsersDreams] = useState();
 
   useEffect((_) => {
@@ -813,6 +877,7 @@ const UserPage = ({ instance, accounts }) => {
   return (
     <div className="userpage">
       <h3>about {msalConfig.currentUser.username}</h3>
+      <span>todo: add settings controls here</span>
       <table className="datatable">
         <thead>
           <tr>
@@ -833,7 +898,7 @@ const UserPage = ({ instance, accounts }) => {
       {usersDreams == null ? (
         <p>loading...</p>
       ) : (
-        <>
+        <div className="dreamfeed">
           {usersDreams.length == 0 ? (
             <p>no dreams yet</p>
           ) : (
@@ -841,7 +906,7 @@ const UserPage = ({ instance, accounts }) => {
               <Dream dream={dreamObject} key={dreamObject.rowKey} />
             ))
           )}
-        </>
+        </div>
       )}
     </div>
   );
