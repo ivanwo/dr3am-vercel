@@ -121,7 +121,11 @@ const App = () => {
             exact
             path="new"
             element={
-              <DreamSubmitForm instance={instance} accounts={accounts} />
+              <DreamSubmitForm
+                instance={instance}
+                accounts={accounts}
+                setModalVisible={setModalVisible}
+              />
             }
           ></Route>
           <Route
@@ -474,24 +478,7 @@ const DreamPage = ({ instance, accounts }) => {
       {dreamContent.rowKey == null ? (
         <p>loading...</p>
       ) : (
-        <div>
-          <table className="datatable">
-            <thead>
-              <tr>
-                <th>key</th>
-                <th>value</th>
-              </tr>
-            </thead>
-            <tbody>
-              {Object.keys(dreamContent).map((key) => (
-                <tr key={key}>
-                  <td>{key}</td>
-                  <td>{dreamContent[key]}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <Dream dream={dreamContent} />
       )}
     </div>
   );
@@ -545,25 +532,7 @@ const DreamFeed = ({ instance, accounts }) => {
           <p>loading...</p>
         ) : (
           dreamList.map((dreamObject) => (
-            <div key={dreamObject.rowKey} className="dreamobject">
-              <div className="bottomborder">
-                <div className="dreamheader">
-                  <p>{dreamObject.user} </p>
-                  <p>{dreamObject.location}</p>
-                  <Link to={"../dream/" + dreamObject.rowKey}>
-                    {dreamObject.rowKey}
-                  </Link>
-                </div>
-              </div>
-              <div className="bottomborder">
-                <div className="dreamheader">
-                  <h4 className="dreammood">{dreamObject.mood}</h4>
-                  <h3 className="dreamtitle">{dreamObject.dreamtitle} </h3>
-                </div>
-              </div>
-              <p>{dreamObject.dreamcontent}</p>
-              <p>{dreamObject.timestamp}</p>
-            </div>
+            <Dream dream={dreamObject} key={dreamObject.rowKey} />
           ))
         )}
       </div>
@@ -571,15 +540,51 @@ const DreamFeed = ({ instance, accounts }) => {
   );
 };
 
-const DreamSubmitForm = ({ instance, accounts }) => {
+let Dream = ({ dream }) => {
+  return (
+    <div className="dreamobject">
+      <div className="dreamheader">
+        <span className="dreammood">{dream.mood}</span>
+        {/* <span className="dreamtitle">{dream.dreamtitle}</span> */}
+        <Link to={"../dream/" + dream.rowKey} className="dreamtitle">
+          {dream.dreamtitle}
+        </Link>
+      </div>
+      <div className="dreamsubheader">
+        <Link to={"../user/" + dream.user}>@{dream.user} (♎︎)</Link>
+        <span>{dream.timestamp.split("T")[0]}</span>
+        <span>{dream.location}</span>
+      </div>
+      <div className="dreambody">
+        <span>{dream.dreamcontent}</span>
+      </div>
+      <div className="dreamfooter">
+        <span>reply</span>
+        <span>react</span>
+        <span>report</span>
+        <span>redo</span>
+        <span>remove</span>
+      </div>
+    </div>
+  );
+};
+
+const DreamSubmitForm = ({ instance, accounts, setModalVisible }) => {
   let navigate = useNavigate();
   let [formData, setFormData] = useState({
     location: msalConfig.currentUser.region,
     mood: "🤮",
     user: msalConfig.currentUser.username,
   });
+  let [currentlySubmitting, setCurrentlySubmitting] = useState(false);
+
   let submitDream = async (event) => {
     event.preventDefault();
+    setCurrentlySubmitting(true);
+    if (!validateDream()) {
+      setCurrentlySubmitting(false);
+      return;
+    }
     console.log("submitting dream");
     instance
       .acquireTokenSilent({
@@ -603,9 +608,11 @@ const DreamSubmitForm = ({ instance, accounts }) => {
               navigate(`../dream/${data.dreamId}`);
             } else {
               // dream creation failed
-              alert(
-                "dream submit issue, please adjust data or contact support"
-              );
+              setCurrentlySubmitting(false);
+              msalConfig.modal.title = "dream submit issue";
+              msalConfig.modal.message =
+                "please adjust data or contact support";
+              setModalVisible(true);
             }
           });
         // TODO: error handling around dream submit result
@@ -623,83 +630,122 @@ const DreamSubmitForm = ({ instance, accounts }) => {
     setFormData(newFormData);
   };
   let validateDream = (_) => {
-    //
-    // TODO: add route to api to determine timestamp of last dream submitted by user
-    // edit: actually, we can just prevent the submit event on the back end and account for that behavior here
+    if (formData.dreamtitle == null) {
+      msalConfig.modal.title = "empty dream title";
+      msalConfig.modal.message = "please adjust dream data and try again";
+      setModalVisible(true);
+      return false;
+    }
+    if (formData.dreamcontent == null) {
+      msalConfig.modal.title = "empty dream content";
+      msalConfig.modal.message = "please adjust dream data and try again";
+      setModalVisible(true);
+      return false;
+    }
+    if (formData.dreamtitle.length < 4) {
+      msalConfig.modal.title = "dream title too short";
+      msalConfig.modal.message = "please add characters and try again";
+      setModalVisible(true);
+      return false;
+    }
+    if (formData.dreamtitle.length > 25) {
+      msalConfig.modal.title = "dream title too long";
+      msalConfig.modal.message = "please remove characters and try again";
+      setModalVisible(true);
+      return false;
+    }
+    if (formData.dreamtitle.length < 40) {
+      msalConfig.modal.title = "dream content too short";
+      msalConfig.modal.message = "please add characters and try again";
+      setModalVisible(true);
+      return false;
+    }
+    if (formData.dreamtitle.length > 400) {
+      msalConfig.modal.title = "dream content too long";
+      msalConfig.modal.message = "please add characters and try again";
+      setModalVisible(true);
+      return false;
+    }
   };
 
   return (
     <div className="dreamsubmitpage">
-      <h3>dream submit form</h3>
-      <form onSubmit={submitDream} id="dreamsubmitform">
-        <label>
-          dream took place in {msalConfig.currentUser.region}?{" "}
-          <input
-            type="checkbox"
-            id="local"
-            defaultChecked={true}
-            onInput={updateFormData}
-          ></input>
-        </label>
-        <div id="moodselector">
-          <label>dream mood</label>
-          <ul id="moodselectorlist">
-            <li
-              onClick={(_) => setFormData({ ...formData, mood: "🤮" })}
-              className={
-                "moodchoice" + (formData.mood == "🤮" ? " activemood" : "")
-              }
-            >
-              🤮
-            </li>
-            <li
-              onClick={(_) => setFormData({ ...formData, mood: "💀" })}
-              className={
-                "moodchoice" + (formData.mood == "💀" ? " activemood" : "")
-              }
-            >
-              💀
-            </li>
-            <li
-              onClick={(_) => setFormData({ ...formData, mood: "🥰" })}
-              className={
-                "moodchoice" + (formData.mood == "🥰" ? " activemood" : "")
-              }
-            >
-              🥰
-            </li>
-            <li
-              onClick={(_) => setFormData({ ...formData, mood: "😭" })}
-              className={
-                "moodchoice" + (formData.mood == "😭" ? " activemood" : "")
-              }
-            >
-              😭
-            </li>
-            <li
-              onClick={(_) => setFormData({ ...formData, mood: "🍆" })}
-              className={
-                "moodchoice" + (formData.mood == "🍆" ? " activemood" : "")
-              }
-            >
-              🍆
-            </li>
-            <li
-              onClick={(_) => setFormData({ ...formData, mood: "🗿" })}
-              className={
-                "moodchoice" + (formData.mood == "🗿" ? " activemood" : "")
-              }
-            >
-              🗿
-            </li>
-          </ul>
-        </div>
-        <label>title</label>
-        <input onInput={updateFormData} id="dreamtitle"></input>
-        <label>content</label>
-        <textarea onInput={updateFormData} id="dreamcontent"></textarea>
-        <button type="submit">submit dream</button>
-      </form>
+      {currentlySubmitting ? (
+        <>submitting...</>
+      ) : (
+        <>
+          <h3>dream submit form</h3>
+          <form onSubmit={submitDream} id="dreamsubmitform">
+            <label>
+              dream took place in {msalConfig.currentUser.region}?{" "}
+              <input
+                type="checkbox"
+                id="local"
+                defaultChecked={true}
+                onInput={updateFormData}
+              ></input>
+            </label>
+            <div id="moodselector">
+              <label>dream mood</label>
+              <ul id="moodselectorlist">
+                <li
+                  onClick={(_) => setFormData({ ...formData, mood: "🤮" })}
+                  className={
+                    "moodchoice" + (formData.mood == "🤮" ? " activemood" : "")
+                  }
+                >
+                  🤮
+                </li>
+                <li
+                  onClick={(_) => setFormData({ ...formData, mood: "💀" })}
+                  className={
+                    "moodchoice" + (formData.mood == "💀" ? " activemood" : "")
+                  }
+                >
+                  💀
+                </li>
+                <li
+                  onClick={(_) => setFormData({ ...formData, mood: "🥰" })}
+                  className={
+                    "moodchoice" + (formData.mood == "🥰" ? " activemood" : "")
+                  }
+                >
+                  🥰
+                </li>
+                <li
+                  onClick={(_) => setFormData({ ...formData, mood: "😭" })}
+                  className={
+                    "moodchoice" + (formData.mood == "😭" ? " activemood" : "")
+                  }
+                >
+                  😭
+                </li>
+                <li
+                  onClick={(_) => setFormData({ ...formData, mood: "🍆" })}
+                  className={
+                    "moodchoice" + (formData.mood == "🍆" ? " activemood" : "")
+                  }
+                >
+                  🍆
+                </li>
+                <li
+                  onClick={(_) => setFormData({ ...formData, mood: "🗿" })}
+                  className={
+                    "moodchoice" + (formData.mood == "🗿" ? " activemood" : "")
+                  }
+                >
+                  🗿
+                </li>
+              </ul>
+            </div>
+            <label>title</label>
+            <input onInput={updateFormData} id="dreamtitle"></input>
+            <label>content</label>
+            <textarea onInput={updateFormData} id="dreamcontent"></textarea>
+            <button type="submit">submit dream</button>
+          </form>
+        </>
+      )}{" "}
     </div>
   );
 };
@@ -792,25 +838,7 @@ const UserPage = ({ instance, accounts }) => {
             <p>no dreams yet</p>
           ) : (
             usersDreams.map((dreamObject) => (
-              <div key={dreamObject.rowKey} className="dreamobject">
-                <div className="bottomborder">
-                  <div className="dreamheader">
-                    <Link to={"../dream/" + dreamObject.rowKey}>
-                      <p>{dreamObject.user} </p>
-                      <p>{dreamObject.location}</p>
-                      <p>{dreamObject.rowKey}</p>
-                    </Link>
-                  </div>
-                </div>
-                <div className="bottomborder">
-                  <div className="dreamheader">
-                    <h4 className="dreammood">{dreamObject.mood}</h4>
-                    <h3 className="dreamtitle">{dreamObject.dreamtitle} </h3>
-                  </div>
-                </div>
-                <p>{dreamObject.dreamcontent}</p>
-                <p>{dreamObject.timestamp}</p>
-              </div>
+              <Dream dream={dreamObject} key={dreamObject.rowKey} />
             ))
           )}
         </>
