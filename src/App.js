@@ -119,7 +119,7 @@ const App = () => {
           <Route
             exact
             path="me"
-            element={<UserPage instance={instance} accounts={accounts} />}
+            element={<CurrentUserPage instance={instance} accounts={accounts} />}
           ></Route>
           <Route
             exact
@@ -846,7 +846,7 @@ const UserViewPage = ({ instance, accounts }) => {
   );
 };
 
-const UserPage = ({ instance, accounts }) => {
+const CurrentUserPage = ({ instance, accounts }) => {
   const [usersDreams, setUsersDreams] = useState();
 
   useEffect((_) => {
@@ -877,6 +877,7 @@ const UserPage = ({ instance, accounts }) => {
   return (
     <div className="userpage">
       <h3>about {msalConfig.currentUser.username}</h3>
+      <span>todo: add settings controls here</span>
       <table className="datatable">
         <thead>
           <tr>
