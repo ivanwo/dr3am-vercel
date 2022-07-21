@@ -6,7 +6,7 @@ async function createNotificationSubscription() {
     window.registration.pushManager.subscribe({userVisibilityOnly: true})
     .then(subscription => {
       console.log(subscription);
-      fetch(`${apiUri}/subscribe`, {
+      fetch(`${msalConfig.apiUri}/subscribe`, {
       method: "POST",
       body: JSON.stringify(subscription),
       headers : {

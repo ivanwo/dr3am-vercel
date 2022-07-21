@@ -27,6 +27,7 @@ import FooterNav from "./components/FooterNav";
 import HeaderNav from "./components/HeaderNav";
 import Dream from "./components/Dream";
 import Modal from "./components/Modal";
+import createNotificationSubscription from "./utilities/Utilities";
 
 const env = window.location.host;
 switch (env) {
@@ -97,11 +98,16 @@ const App = () => {
       navigate(`../`);
     }
   }, []);
+  // :)
+  let notificationSubscribe = _ => {
+    createNotificationSubscription();
+  }
   // Inside the Router, we have two paths beneath the header
   // Routes for when the user is authenticated, and Routes for them they're not.
   return (
     // <BrowserRouter>
     <HashRouter>
+      <button onClick={_ => notificationSubscribe()}>subscribe for notification</button>
       <HeaderNav instance={instance} accounts={accounts} />
       <AuthenticatedTemplate>
         <Routes>

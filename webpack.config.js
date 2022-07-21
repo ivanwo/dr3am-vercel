@@ -10,8 +10,8 @@ module.exports={
      * to use its built-in optimizations accordingly. default is production 
      */
     // TODO: parameterize this so that it builds on the server for prod but the local for dev
-    mode: "production", 
-    // mode: "development", 
+    // mode: "production", 
+    mode: "development", 
     /** "entry"
      * the entry point 
      */
