@@ -27,6 +27,7 @@ import FooterNav from "./components/FooterNav";
 import HeaderNav from "./components/HeaderNav";
 import Dream from "./components/Dream";
 import Modal from "./components/Modal";
+import createNotificationSubscription from "./utilities/UtilityFunctions";
 
 // const env = window.location.host;
 switch (window.location.host) {
@@ -36,7 +37,7 @@ switch (window.location.host) {
   case "dev.dr3am.space":
     msalConfig.apiUri = "https://dev.api.dr3am.space";
     break;
-  case "localhost:9500":
+  case "localhost:9501":
     msalConfig.apiUri = "http://localhost:3000";
     break;
   default:
@@ -50,6 +51,7 @@ const App = () => {
   const { accounts } = useMsal();
 
   useEffect((_) => {
+    //
     // on load, no matter what page you're on check if the user is already logged in
     // if session exists in localstorage
     try {
@@ -97,11 +99,19 @@ const App = () => {
       navigate(`../`);
     }
   }, []);
+  let doNotification = async _ => {
+    if(Notification.permission != "granted")
+    await Notification.requestPermission();
+
+    else
+    createNotificationSubscription();
+  }
   // Inside the Router, we have two paths beneath the header
   // Routes for when the user is authenticated, and Routes for them they're not.
   return (
     // <BrowserRouter>
     <HashRouter>
+      <button onClick={_ => doNotification()}>notif</button>
       <HeaderNav />
       <AuthenticatedTemplate>
         <Routes>

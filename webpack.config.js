@@ -10,8 +10,8 @@ module.exports={
      * to use its built-in optimizations accordingly. default is production 
      */
     // TODO: parameterize this so that it builds on the server for prod but the local for dev
-    mode: "production", 
-    // mode: "development", 
+    // mode: "production", 
+    mode: "development", 
     /** "entry"
      * the entry point 
      */
@@ -34,7 +34,7 @@ module.exports={
      */
     target: "web",
     devServer: {
-        port: "9500",
+        port: "9501",
         // static: ["./public"],
         static: path.resolve(__dirname, './public'),
         open: true,
