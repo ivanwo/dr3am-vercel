@@ -2,12 +2,14 @@ const registerServiceWorker = async () => {
 
   if ('serviceWorker' in navigator) {
     try {
-      window.registration = await navigator.serviceWorker.register(
+      let result = await navigator.serviceWorker.register(
         '/worker.js',
         {
           scope: '/worker.js',
         }
-      );
+      ).then(registration => {
+        window.registration = registration
+      });
       if (window.registration.installing) {
         console.log('Service worker installing');
       } else if (window.registration.waiting) {
@@ -21,6 +23,18 @@ const registerServiceWorker = async () => {
   }
 };
 
+self.addEventListener('push', e => {
+
+  const data = e.data.json();
+  window.registration.showNotification(
+      data.title, // title of the notification
+      {
+          body: "Push notification from section.io", //the body of the push notification
+          image: "https://pixabay.com/vectors/bell-notification-communication-1096280/",
+          icon: "https://pixabay.com/vectors/bell-notification-communication-1096280/" // icon 
+      }
+  );
+});
 // …
 
 registerServiceWorker();

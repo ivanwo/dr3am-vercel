@@ -1,35 +1,40 @@
 import React, {useEffect, useState} from 'react';
 import Dream from '../components/Dream';
+import createNotificationSubscription from "../utilities/Utilities";
 import { msalConfig } from '../../settings/msalConfig';
 
 const CurrentUserPage = ({ instance, accounts }) => {
-    const [usersDreams, setUsersDreams] = useState();
+    // const [usersDreams, setUsersDreams] = useState();
   
     useEffect((_) => {
-      instance
-        .acquireTokenSilent({
-          // determine correct scope and parameterize from msalConfig
-          scopes: ["https://storage.azure.com/user_impersonation"],
-          account: accounts[0],
-        })
-        .then((response) => {
-          let bearerHeader = `bearer ${response.idToken}`;
-          //   TODO: edit parameters of url to specify which subset of dreams to load
-          let submitResult = fetch(
-            `${msalConfig.apiUri}/dreams/${msalConfig.currentUser.username}`,
-            {
-              // let fetchResult = fetch("http://localhost:3000/dreams", {
-              method: "GET",
-              headers: {
-                Authorization: bearerHeader,
-              },
-            }
-          )
-            .then((response) => response.json())
-            .then((nextResponse) => setUsersDreams(nextResponse.dreams));
-        });
+      // instance
+      //   .acquireTokenSilent({
+      //     // determine correct scope and parameterize from msalConfig
+      //     scopes: ["https://storage.azure.com/user_impersonation"],
+      //     account: accounts[0],
+      //   })
+      //   .then((response) => {
+      //     let bearerHeader = `bearer ${response.idToken}`;
+      //     //   TODO: edit parameters of url to specify which subset of dreams to load
+      //     let submitResult = fetch(
+      //       `${msalConfig.apiUri}/dreams/${msalConfig.currentUser.username}`,
+      //       {
+      //         // let fetchResult = fetch("http://localhost:3000/dreams", {
+      //         method: "GET",
+      //         headers: {
+      //           Authorization: bearerHeader,
+      //         },
+      //       }
+      //     )
+      //       .then((response) => response.json())
+      //       .then((nextResponse) => setUsersDreams(nextResponse.dreams));
+      //   });
     }, []);
   
+    let notificationSubscribe = async _ => {
+      createNotificationSubscription();
+    }
+
     return (
       <div className="userpage">
         <h3>about {msalConfig.currentUser.username}</h3>
@@ -50,8 +55,13 @@ const CurrentUserPage = ({ instance, accounts }) => {
             ))}
           </tbody>
         </table>
-        <h3>{msalConfig.currentUser.username}'s dreams</h3>
-        {usersDreams == null ? (
+        {/* <h3>{msalConfig.currentUser.username}'s dreams</h3> */}
+        <div className='userpreferencesmenu'>
+          <h4>notification setting button</h4>
+          <button onClick={_ => notificationSubscribe()}>subscribe for notification</button>
+        </div>
+
+        {/* {usersDreams == null ? (
           <p>loading...</p>
         ) : (
           <div className="dreamfeed">
@@ -63,7 +73,7 @@ const CurrentUserPage = ({ instance, accounts }) => {
               ))
             )}
           </div>
-        )}
+        )} */}
       </div>
     );
   };

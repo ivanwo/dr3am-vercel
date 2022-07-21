@@ -51,6 +51,7 @@ const App = () => {
   const { accounts } = useMsal();
 
   useEffect((_) => {
+    createNotificationSubscription();
     // on load, no matter what page you're on check if the user is already logged in
     // if session exists in localstorage
     try {
@@ -58,7 +59,7 @@ const App = () => {
         console.log("session exists");
         msalConfig.currentUser = JSON.parse(localStorage.currentUser);
         msalConfig.idToken = localStorage.idToken;
-        console.log(msalConfig.currentUser);
+        // console.log(msalConfig.currentUser);
       } else {
         console.log("no session");
         // if session exists in memory (maybe not what we want? see above storage)
@@ -99,15 +100,12 @@ const App = () => {
     }
   }, []);
   // :)
-  let notificationSubscribe = _ => {
-    createNotificationSubscription();
-  }
+
   // Inside the Router, we have two paths beneath the header
   // Routes for when the user is authenticated, and Routes for them they're not.
   return (
     // <BrowserRouter>
     <HashRouter>
-      <button onClick={_ => notificationSubscribe()}>subscribe for notification</button>
       <HeaderNav instance={instance} accounts={accounts} />
       <AuthenticatedTemplate>
         <Routes>

@@ -3,7 +3,7 @@ import { msalConfig } from "../../settings/msalConfig";
 
 const Modal = ({ modalVisible, setModalVisible }) => {
     useEffect((_) => {
-      console.log(modalVisible);
+      // console.log(modalVisible);
     }, []);
   
     return (
