@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from "react";
 import { msalConfig } from "../../settings/msalConfig";
+import { useMsal } from "@azure/msal-react";
 import Dream from "../components/Dream";
 
-const DreamFeedPage = ({ instance, accounts }) => {
+const DreamFeedPage = (_) => {
+  let { instance, accounts } = useMsal();
   let [fetching, setFetching] = useState(false);
   let [dreamList, setDreamList] = useState([]);
 

@@ -1,7 +1,10 @@
 import React from 'react';
+import { useMsal } from "@azure/msal-react";
 import { loginRequest } from '../../settings/msalConfig';
 
-const PublicLandingPage = ({ instance, accounts }) => {
+const PublicLandingPage = (_) => {
+  let {instance, accounts} = useMsal();
+
     return (
       <div>
         <h2>hot dreams in your area!!</h2>

@@ -33,14 +33,15 @@ tr{
 .userpage{
   justify-content: center;
   flex-direction: column;
+  align-items: center;
   display: flex;
 }
 /* individual component styling */
 .modalbacker{
   background-color: rgba(1,1,1,0.9);
   justify-content: center;
-  position: absolute;
   align-items: center;
+  position: absolute;
   display: flex;
   height: 100vh;
   width: 100vw;
@@ -101,6 +102,11 @@ tr{
 }
 .moodchoice:hover {
   transform: scale(1.1);
+}
+.zodiacsign {
+  color: #9892b3;
+  font-size: 1.5rem;
+  font-weight: bold;
 }
 /*  new dream stylings */
 .dreamobject {

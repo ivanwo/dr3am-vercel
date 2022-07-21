@@ -1,7 +1,10 @@
+import { useMsal } from "@azure/msal-react";
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
 
-const HeaderNav = ({ instance, accounts }) => {
+const HeaderNav = (_) => {
+  let {instance, accounts} = useMsal();
+
     let location = useLocation();
     return (
       <h1 id="headernav">

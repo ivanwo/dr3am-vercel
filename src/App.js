@@ -1,4 +1,3 @@
-import React, { useEffect, useState } from "react";
 import {
   AuthenticatedTemplate,
   UnauthenticatedTemplate,
@@ -14,12 +13,13 @@ import {
   Outlet,
   useNavigate,
 } from "react-router-dom";
-import { loginRequest, msalConfig } from "../settings/msalConfig";
 import PrivateLandingPage from "./pages/PrivateLandingPage";
 import PublicLandingPage from "./pages/PublicLandingPage";
 import PrivateAboutPage from "./pages/PrivateAboutPage";
 import DreamSubmitPage from "./pages/DreamSubmitPage";
 import CurrentUserPage from "./pages/CurrentUserPage";
+import { msalConfig } from "../settings/msalConfig";
+import React, { useEffect, useState } from "react";
 import DreamViewPage from "./pages/DreamViewPage";
 import DreamFeedPage from "./pages/DreamFeedPage";
 import UserViewPage from "./pages/UserViewPage";
@@ -28,8 +28,8 @@ import HeaderNav from "./components/HeaderNav";
 import Dream from "./components/Dream";
 import Modal from "./components/Modal";
 
-const env = window.location.host;
-switch (env) {
+// const env = window.location.host;
+switch (window.location.host) {
   case "dr3am.space":
     msalConfig.apiUri = "https://api.dr3am.space";
     break;
@@ -102,72 +102,74 @@ const App = () => {
   return (
     // <BrowserRouter>
     <HashRouter>
-      <HeaderNav instance={instance} accounts={accounts} />
+      <HeaderNav />
       <AuthenticatedTemplate>
         <Routes>
           <Route
             path="/"
-            element={
-              <PrivateLandingPage
-                instance={instance}
-                accounts={accounts}
-                setModalVisible={setModalVisible}
-              />
-            }
+            element={<PrivateLandingPage setModalVisible={setModalVisible} />}
           ></Route>
           <Route exact path="about" element={<PrivateAboutPage />}></Route>
-          <Route
-            exact
-            path="feed"
-            element={<DreamFeedPage instance={instance} accounts={accounts} />}
-          ></Route>
-          <Route
-            exact
-            path="me"
-            element={
-              <CurrentUserPage instance={instance} accounts={accounts} />
-            }
-          ></Route>
+          <Route exact path="feed" element={<DreamFeedPage />}></Route>
+          <Route exact path="me" element={<CurrentUserPage />}></Route>
           <Route
             exact
             path="new"
-            element={
-              <DreamSubmitPage
-                instance={instance}
-                accounts={accounts}
-                setModalVisible={setModalVisible}
-              />
-            }
+            element={<DreamSubmitPage setModalVisible={setModalVisible} />}
           ></Route>
+          <Route exact path="dream/*" element={<DreamViewPage />}></Route>
+          <Route
+            exact
+            path="user/*"
+            element={<UserViewPage setModalVisible={setModalVisible} />}
+          ></Route>
+          <Route path="*" element={<PageNotFound />}></Route>
+        </Routes>
+        <FooterNav setModalVisible={setModalVisible}></FooterNav>
+      </AuthenticatedTemplate>
+      <UnauthenticatedTemplate>
+        <Routes>
+          <Route path="/" element={<PublicLandingPage />}></Route>
           <Route
             exact
             path="dream/*"
-            element={<DreamViewPage instance={instance} accounts={accounts} />}
+            element={
+              <div className="userpage">
+                <h3>you must log in to view dreams</h3>
+                <button
+                  onClick={(_) => {
+                    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                      navigator.userAgent
+                    )
+                      ? instance.loginRedirect(loginRequest)
+                      : instance.loginPopup(loginRequest);
+                  }}
+                  className="loginbutton"
+                >
+                  log in/ sign up
+                </button>
+              </div>
+            }
           ></Route>
           <Route
             exact
             path="user/*"
             element={
-              <>
-                <UserViewPage
-                  instance={instance}
-                  accounts={accounts}
-                  setModalVisible={setModalVisible}
-                />
-                <Outlet />
-              </>
-            }
-          ></Route>
-          <Route path="*" element={<PageNotFound />}></Route>
-        </Routes>
-        <FooterNav instance={instance} accounts={accounts} setModalVisible={setModalVisible}></FooterNav>
-      </AuthenticatedTemplate>
-      <UnauthenticatedTemplate>
-        <Routes>
-          <Route
-            path="/"
-            element={
-              <PublicLandingPage instance={instance} accounts={accounts} />
+              <div className="userpage">
+                <h3>you must log in to view users</h3>
+                <button
+                  onClick={(_) => {
+                    /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(
+                      navigator.userAgent
+                    )
+                      ? instance.loginRedirect(loginRequest)
+                      : instance.loginPopup(loginRequest);
+                  }}
+                  className="loginbutton"
+                >
+                  log in/ sign up
+                </button>
+              </div>
             }
           ></Route>
           <Route path="*" element={<PageNotFound />}></Route>
